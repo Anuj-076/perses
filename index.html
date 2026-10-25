@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Perses AI // Tactical Quantum Core</title>
   <style>
+    /* Minimalist Premium ChatGPT Interface Reset Rules */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -40,6 +41,7 @@
       position: relative;
     }
 
+    /* Left Sidebar Panel Component */
     .perses-sidebar {
       width: 260px;
       background-color: var(--bg-sidebar);
@@ -359,7 +361,7 @@
           <div class="quantum-singularity"></div>
         </div>
         <h1 class="welcome-heading">𝕎𝕖𝕝𝕔𝕠𝕞𝕖 𝕋𝕠 ℙ𝕖𝕣𝕤𝕖𝕤</h1>
-        <p class="welcome-subtext">Quantum AI Cognitive Node // Groq Engine Pipeline Active</p>
+        <p class="welcome-subtext">Quantum AI Cognitive Node // OpenRouter Network Active</p>
         
         <div class="quick-directives-grid">
           <div class="directive-card" onclick="injectQuickPrompt('Optimize local quantum array pipelines and trace system latencies.')">
@@ -408,7 +410,8 @@
     const historyStack = document.getElementById('historyStack');
     const logoInteractive3D = document.getElementById('logoInteractive3D');
 
-    const GROQ_API_KEY = "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";
+    // Hardwired Active OpenRouter Token Key
+    const OPENROUTER_API_KEY = "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";
     let conversationSessionLog = [];
     let chatSessionHistoryTracker = [];
     let activeSessionId = null;
@@ -465,29 +468,38 @@
       updateActiveSessionTitleText(rawUserQueryText);
 
       try {
-        const responseStream = await fetch("https://groq.com", {
+        // Direct secure fetch stream mapping to OpenRouter endpoint arrays
+        const responseStream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
-            "Authorization": "Bearer " + GROQ_API_KEY.trim(),
-            "Content-Type": "application/json"
+            "Authorization": "Bearer " + OPENROUTER_API_KEY.trim(),
+            "Content-Type": "application/json",
+            "HTTP-Referer": window.location.origin,
+            "X-Title": "Perses AI Core"
           },
           body: JSON.stringify({
-            model: "llama-3.3-70b-specdec",
+            model: "meta-llama/llama-3.1-8b-instruct:free",
             messages: conversationSessionLog.map(item => ({role: item.role, content: item.content})),
             temperature: 0.7
           })
         });
 
+        if (!responseStream.ok) {
+          const parseErrorDetails = await responseStream.text();
+          throw new Error(`API Status Response Mismatch: ${responseStream.status} - ${parseErrorDetails}`);
+        }
+
         const parsedJSONPayload = await responseStream.json();
-        if (parsedJSONPayload && parsedJSONPayload.choices && parsedJSONPayload.choices) {
+        if (parsedJSONPayload && parsedJSONPayload.choices && parsedJSONPayload.choices[0]) {
           contentNode.innerHTML = '';
-          const persesResponseTextText = parsedJSONPayload.choices.message.content;
+          const persesResponseTextText = parsedJSONPayload.choices[0].message.content;
           renderFormattedMarkdownText(contentNode, persesResponseTextText);
           conversationSessionLog.push({ role: "assistant", content: persesResponseTextText });
           cacheCurrentStateLogs();
         }
       } catch (pipelineErr) {
-        contentNode.innerHTML = `<span style="color: #ff3b30;">[CRITICAL INTERFACE TRANSMISSION FAULT] // Handshake pipeline rejected outbound headers.</span>`;
+        console.error(pipelineErr);
+        contentNode.innerHTML = `<span style="color: #ff3b30; font-family: var(--font-monospace); font-size:13px;">[CRITICAL INTERFACE TRANSMISSION FAULT] // Handshake pipeline rejected outbound headers. Details: ${pipelineErr.message}</span>`;
       }
       chatOutput.scrollTop = chatOutput.scrollHeight;
     }
@@ -521,7 +533,7 @@
 
     function createNewActiveSessionSpace() {
       activeSessionId = 'session_' + Date.now();
-      conversationSessionLog = [{ role: "system", content: "You are Perses, a brilliant premium AI workspace core built with Stark structural telemetry styles." }];
+      conversationSessionLog = [{ role: "system", content: "You are Perses, a brilliant premium AI workspace core built with Stark structural telemetry styles. Deliver highly structural data arrangements, use bold text overlays cleanly, and maintain execution precision." }];
       const messageRows = chatOutput.querySelectorAll('.message-row');
       messageRows.forEach(row => row.remove());
       if (emptyState) emptyState.style.display = 'flex';
@@ -578,7 +590,8 @@
         if (msg.role === 'user') appendMessageElementRow('User', msg.content, 'user-type');
         else if (msg.role === 'assistant') {
           const renderedRow = appendMessageElementRow('Perses', '', 'assistant-type');
-          renderFormattedMarkdownText(renderedRow.querySelector('.bubble-content'), msg.content);
+          const contentBox = renderedRow.querySelector('.bubble-content');
+          renderFormattedMarkdownText(contentBox, msg.content);
         }
       });
       refreshHistorySidebarLogsView();
