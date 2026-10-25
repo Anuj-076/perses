@@ -253,7 +253,6 @@
       margin-top: -16px;
       letter-spacing: 1px;
     }
-
     .quick-directives-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -410,7 +409,7 @@
     const historyStack = document.getElementById('historyStack');
     const logoInteractive3D = document.getElementById('logoInteractive3D');
 
-    // Hardwired Active OpenRouter Token Key
+    // Hardwired Active Unlocked OpenRouter Token Key
     const OPENROUTER_API_KEY = "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";
     let conversationSessionLog = [];
     let chatSessionHistoryTracker = [];
@@ -468,8 +467,7 @@
       updateActiveSessionTitleText(rawUserQueryText);
 
       try {
-        // Direct secure fetch stream mapping to OpenRouter endpoint arrays
-        const responseStream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const responseStream = await fetch("https://openrouter.ai", {
           method: "POST",
           headers: {
             "Authorization": "Bearer " + OPENROUTER_API_KEY.trim(),
@@ -478,7 +476,7 @@
             "X-Title": "Perses AI Core"
           },
           body: JSON.stringify({
-            model: "meta-llama/llama-3.1-8b-instruct:free",
+            model: "meta-llama/llama-3.1-8b-instruct",
             messages: conversationSessionLog.map(item => ({role: item.role, content: item.content})),
             temperature: 0.7
           })
@@ -490,16 +488,20 @@
         }
 
         const parsedJSONPayload = await responseStream.json();
-        if (parsedJSONPayload && parsedJSONPayload.choices && parsedJSONPayload.choices[0]) {
+        
+        // FIXED EXACT EXTRACTION KEY PATH INDICES LOOP HERE:
+        if (parsedJSONPayload && parsedJSONPayload.choices && parsedJSONPayload.choices.length > 0 && parsedJSONPayload.choices[0].message) {
           contentNode.innerHTML = '';
           const persesResponseTextText = parsedJSONPayload.choices[0].message.content;
           renderFormattedMarkdownText(contentNode, persesResponseTextText);
           conversationSessionLog.push({ role: "assistant", content: persesResponseTextText });
           cacheCurrentStateLogs();
+        } else {
+          throw new Error("Invalid object node parameters path mapping.");
         }
       } catch (pipelineErr) {
         console.error(pipelineErr);
-        contentNode.innerHTML = `<span style="color: #ff3b30; font-family: var(--font-monospace); font-size:13px;">[CRITICAL INTERFACE TRANSMISSION FAULT] // Handshake pipeline rejected outbound headers. Details: ${pipelineErr.message}</span>`;
+        contentNode.innerHTML = `<span style="color: #ff3b30; font-family: var(--font-monospace); font-size:13px;">[CRITICAL INTERFACE TRANSMISSION FAULT] // Handshake pipeline loop failure. Details: ${pipelineErr.message}</span>`;
       }
       chatOutput.scrollTop = chatOutput.scrollHeight;
     }
@@ -537,6 +539,7 @@
       const messageRows = chatOutput.querySelectorAll('.message-row');
       messageRows.forEach(row => row.remove());
       if (emptyState) emptyState.style.display = 'flex';
+      refreshHistorySidebarLogsView();
     }
 
     function updateActiveSessionTitleText(firstPromptTextText) {
@@ -612,7 +615,6 @@
       }
       runSmoothLogoLerpTick();
     }
-
     bootPersesEngine();
   })();
 </script>
