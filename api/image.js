@@ -29,7 +29,7 @@ export default async function handler(req) {
   if (key) {
     try {
       const r = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
