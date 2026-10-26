@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perses</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='22' fill='%23ff5a00'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="overlay"></div>
+  <aside id="sidebar">
+    <div class="side-top">
+      <button id="newChat" class="icon-btn" title="New chat" aria-label="New chat">+</button>
+      <button id="closeSide" class="icon-btn only-mobile" aria-label="Close menu">✕</button>
+    </div>
+    <div class="side-label">TELEMETRY LOGS</div>
+    <nav id="history"></nav>
+    <div class="side-foot">
+      <div class="status"><span class="dot"></span> PERSES ENGINE ONLINE</div>
+      <button id="clearAll" class="link-btn">Clear all</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header id="topbar">
+      <button id="menuBtn" class="icon-btn only-mobile" aria-label="Open menu">☰</button>
+      <select id="modelSelect" aria-label="Model"></select>
+    </header>
+
+    <section id="scroll">
+      <div id="welcome">
+        <div class="orb"><i></i><i></i><i></i><b></b></div>
+        <h1>Welcome To Perses</h1>
+        <p class="sub">Quantum AI Cognitive Node // Perses Network Active</p>
+        <div class="cards">
+          <button class="card" data-p="Help me optimize a slow algorithm. Ask me for the code."><span>⚡</span>Optimize local quantum arrays</button>
+          <button class="card" data-p="Explain how to analyze log files to find the root cause of errors."><span>📊</span>Analyze system structural logs</button>
+          <button class="card" data-p="Generate a clean modern login page UI in HTML and CSS."><span>🛠️</span>Generate UI blueprints</button>
+          <button class="card" data-p="/image a futuristic cooling system with glowing blue vents, cinematic"><span>❄️</span>Simulate emergency cooling</button>
+        </div>
+      </div>
+      <div id="messages"></div>
+    </section>
+
+    <footer id="composer">
+      <div id="previews"></div>
+      <div class="bar">
+        <button id="attachBtn" class="icon-btn flat" title="Add image" aria-label="Add image">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>
+        </button>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        <textarea id="input" rows="1" placeholder="Message Perses..." enterkeyhint="send"></textarea>
+        <button id="sendBtn" class="send" aria-label="Send">
+          <svg id="sendIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+          <svg id="stopIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+      </div>
+      <div class="disc">Perses can make mistakes. Cross-check important information. Tip: type <b>/image</b> + a description to create pictures.</div>
+    </footer>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
