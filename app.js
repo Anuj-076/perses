@@ -3,9 +3,9 @@ const CONFIG = {
   // "" = same site (Vercel). If the page is on GitHub Pages or another site,
   // put your Vercel URL here, e.g. "https://perses-xyz.vercel.app"
   API_BASE: "",
-    MODELS: [
+      MODELS: [
+    { id: "auto", label: "Perses Auto (recommended)", vision: true },
     { id: "gemini-3.8-flash", label: "Perses Fast", vision: true },
-    { id: "gemini-3.1-pro-preview", label: "Perses Pro", vision: true },
     { id: "meta-llama/llama-3.3-70b-instruct:free", label: "Perses Open (free)", vision: false }
   ]
 };
