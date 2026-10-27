@@ -1,8 +1,8 @@
 /* ============================ SETTINGS ============================ */
 const CONFIG = {
   API_BASE: "",                                   // keep "" when the site is on Vercel
-  SUPABASE_URL: "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE",
-  SUPABASE_ANON_KEY: "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE",   // the PUBLISHABLE / anon key only!
+  SUPABASE_URL: "https://cmtougdkugmkgwifzqut.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_EAjcrfX1Rq-UVED3SEA_BQ_qohQR-SM",   // the PUBLISHABLE / anon key only!
   LOGO_URL: "https://i.ibb.co/BVj29ptv/AI-logo.png",
   CHECKOUT: { pro: "", elite: "" },               // payment links go here later
   LIMITS: { free: { msgs: 20, imgs: 3 }, pro: { msgs: 200, imgs: 30 }, elite: { msgs: 1000, imgs: 100 } }, // keep same as api/_lib.js
