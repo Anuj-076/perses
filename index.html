@@ -1,42 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Perses</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='22' fill='%23ff5a00'/></svg>">
+<link rel="icon" href="https://i.ibb.co/BVj29ptv/AI-logo.png">
+<script>try{var t=localStorage.getItem('perses_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
+
+<!-- LOGIN / SIGN UP -->
+<div id="auth" class="screen" hidden>
+  <div class="auth-card">
+    <img class="logo-lg" data-logo alt="Perses">
+    <h2 id="authTitle">Welcome back</h2>
+    <div class="tabs" id="authTabs">
+      <button data-m="login" class="on" type="button">Log in</button>
+      <button data-m="signup" type="button">Sign up</button>
+    </div>
+    <form id="authForm">
+      <input id="email" class="field" type="email" placeholder="Email" required autocomplete="email">
+      <input id="pass" class="field" type="password" placeholder="Password (min 8 characters)" required minlength="8" autocomplete="current-password">
+      <button id="authBtn" class="primary" type="submit">Log in</button>
+    </form>
+    <button id="forgot" class="link" type="button">Forgot password?</button>
+    <p id="authMsg" class="amsg"></p>
+  </div>
+</div>
+
+<!-- CHOOSE USERNAME -->
+<div id="nameScreen" class="screen" hidden>
+  <div class="auth-card">
+    <img class="logo-lg" data-logo alt="Perses">
+    <h2>Email verified ✓</h2>
+    <p class="hint">Choose a username. 3–20 characters: letters, numbers or _</p>
+    <form id="nameForm">
+      <input id="uname" class="field" placeholder="Username" required minlength="3" maxlength="20" autocomplete="username">
+      <button class="primary" type="submit">Continue</button>
+    </form>
+    <button id="logoutName" class="link" type="button">Log out</button>
+    <p id="nameMsg" class="amsg"></p>
+  </div>
+</div>
+
+<!-- NEW PASSWORD -->
+<div id="resetScreen" class="screen" hidden>
+  <div class="auth-card">
+    <img class="logo-lg" data-logo alt="Perses">
+    <h2>Set a new password</h2>
+    <form id="resetForm">
+      <input id="newpass" class="field" type="password" placeholder="New password (min 8)" required minlength="8" autocomplete="new-password">
+      <button class="primary" type="submit">Save password</button>
+    </form>
+    <p id="resetMsg" class="amsg"></p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" hidden>
   <div id="overlay"></div>
   <aside id="sidebar">
     <div class="side-top">
+      <div class="brand"><img data-logo alt=""><span>Perses</span></div>
       <button id="newChat" class="icon-btn" title="New chat" aria-label="New chat">+</button>
       <button id="closeSide" class="icon-btn only-mobile" aria-label="Close menu">✕</button>
     </div>
     <div class="side-label">TELEMETRY LOGS</div>
     <nav id="history"></nav>
     <div class="side-foot">
+      <div id="usage" class="usage"></div>
+      <button id="upgradeSide" class="upgrade">⚡ Upgrade</button>
+      <div class="usercard-wrap">
+        <div id="userMenu" class="menu" hidden>
+          <button id="mBg">🖼️ Custom background</button>
+          <button id="mBgRemove">✖ Remove background</button>
+          <button id="mTheme">🌗 Switch theme</button>
+          <button id="mLogout">⎋ Log out</button>
+        </div>
+        <button id="userBtn" class="usercard">
+          <span class="ava" id="uAva">P</span>
+          <span class="uinfo"><b id="uName"></b><small id="uPlan"></small></span>
+          <span class="dots">⋯</span>
+        </button>
+      </div>
       <div class="status"><span class="dot"></span> PERSES ENGINE ONLINE</div>
-      <button id="clearAll" class="link-btn">Clear all</button>
     </div>
   </aside>
 
   <main id="main">
+    <canvas id="fx"></canvas>
     <header id="topbar">
       <button id="menuBtn" class="icon-btn only-mobile" aria-label="Open menu">☰</button>
-      <select id="modelSelect" aria-label="Model"></select>
+      <div class="spacer"></div>
+      <button id="themeBtn" class="icon-btn" title="Dark / light mode" aria-label="Switch theme">☀️</button>
+      <button id="upgradeTop" class="upgrade small">⚡ Upgrade</button>
     </header>
 
     <section id="scroll">
       <div id="welcome">
-        <div class="orb"><i></i><i></i><i></i><b></b></div>
+        <div class="orb">
+          <span class="glow"></span><span class="ring r3"></span><span class="ring r2"></span><span class="ring r1"></span>
+          <img data-logo alt="Perses">
+        </div>
         <h1>Welcome To Perses</h1>
-        <p class="sub">Quantum AI Cognitive Node // Perses Network Active</p>
+        <p class="sub" id="wHello">Quantum AI Cognitive Node // Perses Network Active</p>
         <div class="cards">
           <button class="card" data-p="Help me optimize a slow algorithm. Ask me for the code."><span>⚡</span>Optimize local quantum arrays</button>
           <button class="card" data-p="Explain how to analyze log files to find the root cause of errors."><span>📊</span>Analyze system structural logs</button>
@@ -63,12 +134,25 @@
       <div class="disc">Perses can make mistakes. Cross-check important information. Tip: type <b>/image</b> + a description to create pictures.</div>
     </footer>
   </main>
+  <input type="file" id="bgFile" accept="image/*" hidden>
 </div>
+
+<!-- UPGRADE POPUP -->
+<div id="upgradeModal" class="modal" hidden>
+  <div class="sheet">
+    <button id="closeUpgrade" class="x" aria-label="Close">✕</button>
+    <h2>Choose your Perses</h2>
+    <p class="hint">Pick the plan that fits you. Upgrade or change any time.</p>
+    <div id="plansBox" class="plans"></div>
+  </div>
+</div>
+<input type="file" id="bgFileDummy" hidden>
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
