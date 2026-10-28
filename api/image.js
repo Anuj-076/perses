@@ -1,7 +1,8 @@
 import { cors, json, blocked, authenticate, consume, limitResponse } from './_lib.js';
 export const config = { runtime: 'edge' };
 
-// Tried in this order (skips any that fail). Edit names here if Google renames them.
+// Gemini models are only a bonus (they only work if your key allows image creation for free).
+// Edit the names here if Google renames them.
 const GEM_IMAGE = {
   free:  ['gemini-3.1-flash-lite-image', 'gemini-2.5-flash-image'],
   pro:   ['gemini-nano-banana-2.1', 'gemini-3.1-flash-image-preview', 'gemini-3.1-flash-lite-image'],
@@ -91,7 +92,7 @@ async function generate(a, prompt, imgs) {
   const editing = imgs.length > 0;
   const finalPrompt = editing ? prompt : await enhance(prompt);
   const gems = GEM_IMAGE[a.plan] || GEM_IMAGE.free;
-  const order = (a.guest || a.plan === 'free') ? ['cf', 'gem'] : ['gem', 'cf'];
+  const order = ['cf', 'gem'];   // free Cloudflare first, Gemini only as a bonus
   const t0 = Date.now();
   for (const step of order) {
     if (step === 'cf' && !editing) {
