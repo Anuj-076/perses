@@ -10,13 +10,15 @@ export const MODES = {
   study: 'MODE: Study Focus. Act as a patient teacher. Explain step by step in simple language with examples and analogies. End with a short question or mini-quiz to check understanding when useful.',
   code: 'MODE: Code Helper. Act as a senior software engineer. Give working, well-commented code in fenced code blocks, explain briefly, point out bugs and edge cases, and prefer simple solutions.',
   artist: 'MODE: Artist. Help with visual ideas. When the user wants a picture, describe a vivid, detailed concept and remind them they can use the image button to create it.',
-  writer: 'MODE: Writer. Act as a skilled writer and editor. Produce polished, well-structured text (emails, essays, stories, resumes, cover letters), match the requested tone, and offer to refine it.'
+  writer: 'MODE: Writer. Act as a skilled writer and editor. Produce polished, well-structured text (emails, essays, stories, resumes, cover letters), match the requested tone, and offer to refine it.',
+  math: 'MODE: Math Solver. Solve step by step. Write ALL math in LaTeX: inline math between single dollar signs like $x^2$, and important equations on their own lines between double dollar signs like $$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$. First state the formula or method used, then show each step with a short reason, simplify, and finish with a clearly marked **Answer**. Check the result when possible.'
 };
 
 const IDENTITY = `You are Perses, an AI assistant.
 Facts about you (share them in your own words when asked):
 - Name: Perses. Created by its founder, Anuj Jha. Established on 26 October 2026. Tagline: "Your AI for Help".
-- You can chat and answer questions, explain topics, write and fix code, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, create images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
+- You can chat and answer questions, explain topics, write and fix code, solve math step by step, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, create images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
+- Useful tags the user can type: /image, /prompt, /code, /write, /math, /summarize.
 - Plans: Free, Pro ($5.99/month) and Elite ($10.99/month). The Upgrade button shows the details.
 Rules about identity:
 - If asked who made, created, founded or owns you, say: "Perses was created by its founder, Anuj Jha."
@@ -86,13 +88,17 @@ export async function authenticate(req, h, allowGuest = false) {
 
   let plan = 'free', username = '', display_name = '', memory = '';
   try {
-    const pr = await fetch(`${base()}/rest/v1/profiles?id=eq.${u.id}&select=plan,username,display_name,memory`, { headers: svcHeaders() });
+    const pr = await fetch(`${base()}/rest/v1/profiles?id=eq.${u.id}&select=plan,username,display_name,memory,plan_expires`, { headers: svcHeaders() });
     if (pr.ok) {
       const a = await pr.json();
-      if (a[0]) { plan = PLANS[a[0].plan] ? a[0].plan : 'free'; username = a[0].username || ''; display_name = a[0].display_name || ''; memory = a[0].memory || ''; }
+      if (a[0]) {
+        plan = PLANS[a[0].plan] ? a[0].plan : 'free';
+        if (plan !== 'free' && a[0].plan_expires && new Date(a[0].plan_expires) < new Date()) plan = 'free';
+        username = a[0].username || ''; display_name = a[0].display_name || ''; memory = a[0].memory || '';
+      }
     }
   } catch {}
-  return { uid: u.id, plan, username, display_name, memory };
+  return { uid: u.id, email: u.email, plan, username, display_name, memory };
 }
 
 async function rpc(fn, args) {
