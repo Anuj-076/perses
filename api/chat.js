@@ -1,10 +1,9 @@
-import { PLANS, cors, json, blocked, authenticate, bump } from './_lib.js';
+import { cors, json, blocked, authenticate, consume, limitResponse, buildSystem } from './_lib.js';
 export const config = { runtime: 'edge' };
 
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// v:1 means the model can read images
 const M = {
   groq70:  { p: 'groq',   id: 'llama-3.3-70b-versatile' },
   groqVis: { p: 'groq',   id: 'meta-llama/llama-4-scout-17b-16e-instruct', v: 1 },
@@ -14,16 +13,49 @@ const M = {
   g35lite: { p: 'gemini', id: 'gemini-3.5-flash-lite', v: 1 },
   g31lite: { p: 'gemini', id: 'gemini-3.1-flash-lite-preview', v: 1 }
 };
-// Order = who answers first. If one is busy, the next one takes over.
 const CHAINS = {
   free:  [M.groq70, M.groqVis, M.g35lite, M.g31lite],
   pro:   [M.g38, M.groq70, M.groqVis, M.g35lite],
   elite: [M.g38deep, M.g35, M.groq70, M.groqVis]
 };
 const PER_MODEL_MS = 9000;
-const TOTAL_MS = 22000;
+const TOTAL_MS = 23000;
 
 const hasImages = msgs => msgs.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'image_url'));
+const sseOf = t => 'data: ' + JSON.stringify({ choices: [{ delta: { content: t } }] }) + '\n\ndata: [DONE]\n\n';
+
+// Web search through Gemini's built-in Google Search tool. Returns text with sources, or null.
+async function searchReply(system, messages, signal) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: typeof m.content === 'string' ? [{ text: m.content || ' ' }]
+      : m.content.map(p => {
+          if (p.type === 'text') return { text: p.text };
+          const mt = /^data:(.+?);base64,(.+)$/.exec(p.image_url?.url || '');
+          return mt ? { inlineData: { mimeType: mt[1], data: mt[2] } } : { text: ' ' };
+        })
+  }));
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, tools: [{ google_search: {} }] }),
+    signal
+  });
+  if (!r.ok) return null;
+  const d = await r.json();
+  const c = d.candidates?.[0];
+  const text = (c?.content?.parts || []).map(p => p.text || '').join('').trim();
+  if (!text) return null;
+  const seen = new Set();
+  let src = '';
+  for (const g of c.groundingMetadata?.groundingChunks || []) {
+    const u = g.web?.uri;
+    if (u && !seen.has(u)) { seen.add(u); src += `\n${seen.size}. [${String(g.web.title || u).replace(/[\[\]]/g, '')}](${u})`; }
+  }
+  return text + (src ? `\n\n**Sources**${src}` : '');
+}
 
 export default async function handler(req) {
   const h = cors(req);
@@ -31,7 +63,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405, h);
   if (blocked(req)) return json({ error: 'Origin not allowed' }, 403, h);
 
-  const a = await authenticate(req, h);
+  const a = await authenticate(req, h, true);
   if (a.fail) return a.fail;
 
   let body;
@@ -40,17 +72,32 @@ export default async function handler(req) {
   if (!Array.isArray(messages) || !messages.length) return json({ error: 'messages required' }, 400, h);
   messages = messages.slice(-30);
 
-  const system =
-    "You are Perses, a helpful, accurate and friendly AI assistant. Reply in Markdown. " +
-    "Put all code in fenced code blocks with the language name. Be concise unless asked for detail." +
-    (a.username ? ` The user's name is ${a.username}.` : '');
+  const system = buildSystem(a, body.mode);
+  const started = Date.now();
+  const sseHeaders = { ...h, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' };
+  const usageFail = async (ok, up) => {
+    if (up) { try { await up.body.cancel(); } catch {} }
+    return ok === false ? limitResponse(a, 'msgs', h) : json({ error: 'Usage service error. Check the Supabase setup (SQL + SUPABASE_SERVICE_KEY).' }, 500, h);
+  };
 
+  // 1) Web search mode (logged-in users)
+  if (body.search === true && !a.guest) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 13000);
+    let text = null;
+    try { text = await searchReply(system, messages, ctl.signal); } catch {}
+    clearTimeout(t);
+    if (text) {
+      const ok = await consume(a, 'msgs');
+      if (ok !== true) return usageFail(ok);
+      return new Response(sseOf(text), { headers: sseHeaders });
+    }
+  }
+
+  // 2) Normal chat with backups
   let list = CHAINS[a.plan] || CHAINS.free;
   if (hasImages(messages)) list = list.filter(m => m.v);
-
-  const started = Date.now();
   const errs = [];
-  const limit = PLANS[a.plan].msgs;
 
   for (const m of list) {
     const left = TOTAL_MS - (Date.now() - started);
@@ -72,25 +119,16 @@ export default async function handler(req) {
       });
       clearTimeout(timer);
       if (up.ok) {
-        const ok = await bump(a.uid, 'msgs', limit);
-        if (ok === false) {
-          try { await up.body.cancel(); } catch {}
-          return json({ error: `You've used all ${limit} messages for today on your plan. Upgrade for more, or come back tomorrow.`, code: 'limit' }, 429, h);
-        }
-        if (ok === null) {
-          try { await up.body.cancel(); } catch {}
-          return json({ error: 'Usage service error. Check the Supabase setup (SQL + SUPABASE_SERVICE_KEY).' }, 500, h);
-        }
-        return new Response(up.body, {
-          headers: { ...h, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'X-Perses-Model': m.id }
-        });
+        const ok = await consume(a, 'msgs');
+        if (ok !== true) return usageFail(ok, up);
+        return new Response(up.body, { headers: { ...sseHeaders, 'X-Perses-Model': m.id } });
       }
       const t = await up.text();
-      errs.push(`${m.id} ${up.status}: ${t.replace(/\s+/g, ' ').slice(0, 90)}`);
+      errs.push(`${m.id} ${up.status}: ${t.replace(/\s+/g, ' ').slice(0, 80)}`);
     } catch (e) {
       clearTimeout(timer);
       errs.push(`${m.id}: ${e.name === 'AbortError' ? 'too slow' : 'network error'}`);
     }
   }
-  return json({ error: 'The AI is very busy right now. Please try again in a minute. (' + errs.join(' | ').slice(0, 420) + ')' }, 503, h);
+  return json({ error: 'Perses is very busy right now. Please try again in a minute. (' + errs.join(' | ').slice(0, 400) + ')' }, 503, h);
 }
