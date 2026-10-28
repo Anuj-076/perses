@@ -72,8 +72,16 @@ export default async function handler(req) {
   if (!Array.isArray(messages) || !messages.length) return json({ error: 'messages required' }, 400, h);
   messages = messages.slice(-30);
 
-  const system = buildSystem(a, body.mode);
+  // Extra context from the app (project rules, documents). Plugins send this in "context".
+  const ctx = typeof body.context === 'string' ? body.context.slice(0, 320000) : '';
+  const longCtx = ctx.length > 15000;
+  let system = buildSystem(a, body.mode);
+  if (ctx) system += '\n\nEXTRA CONTEXT FROM THE USER (project rules, documents). Use it when relevant:\n' + ctx;
+  if (body.voice === true) system += '\n\nVOICE MODE: The user is talking with you out loud. Reply in 1 to 3 short, natural spoken sentences. No markdown, lists, code or emojis.';
+
   const started = Date.now();
+  const totalMs = longCtx ? 24000 : TOTAL_MS;
+  const perModel = longCtx ? 20000 : PER_MODEL_MS;
   const sseHeaders = { ...h, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' };
   const usageFail = async (ok, up) => {
     if (up) { try { await up.body.cancel(); } catch {} }
@@ -97,10 +105,11 @@ export default async function handler(req) {
   // 2) Normal chat with backups
   let list = CHAINS[a.plan] || CHAINS.free;
   if (hasImages(messages)) list = list.filter(m => m.v);
+  if (longCtx) list = list.filter(m => m.p === 'gemini');   // big documents need Gemini's long context
   const errs = [];
 
   for (const m of list) {
-    const left = TOTAL_MS - (Date.now() - started);
+    const left = totalMs - (Date.now() - started);
     if (left < 2500) break;
     const key = m.p === 'groq' ? process.env.GROQ_API_KEY : process.env.GEMINI_API_KEY;
     if (!key) { errs.push(m.p + ': key missing'); continue; }
@@ -109,7 +118,7 @@ export default async function handler(req) {
     if (m.p === 'gemini' && m.effort) payload.reasoning_effort = m.effort;
 
     const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), Math.min(PER_MODEL_MS, left));
+    const timer = setTimeout(() => ctl.abort(), Math.min(perModel, left));
     try {
       const up = await fetch(m.p === 'groq' ? GROQ_URL : GEMINI_URL, {
         method: 'POST',
