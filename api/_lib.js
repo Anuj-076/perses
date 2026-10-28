@@ -1,7 +1,7 @@
 export const PLANS = {
-  free:  { msgs: 100,  imgs: 10 },
-  pro:   { msgs: 1000, imgs: 100 },
-  elite: { msgs: 5000, imgs: 500 }
+  free:  { msgs: 100,  imgs: 3 },
+  pro:   { msgs: 1000, imgs: 15 },
+  elite: { msgs: 5000, imgs: 40 }
 };
 export const GUEST = { msgs: 10, imgs: 1, ipMsgs: 60, ipImgs: 6 };
 
@@ -16,7 +16,7 @@ export const MODES = {
 const IDENTITY = `You are Perses, an AI assistant.
 Facts about you (share them in your own words when asked):
 - Name: Perses. Created by its founder, Anuj Jha. Established on 26 October 2026. Tagline: "Your AI for Help".
-- You can chat and answer questions, explain topics, write and fix code, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, create and edit images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
+- You can chat and answer questions, explain topics, write and fix code, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, create images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
 - Plans: Free, Pro ($5.99/month) and Elite ($10.99/month). The Upgrade button shows the details.
 Rules about identity:
 - If asked who made, created, founded or owns you, say: "Perses was created by its founder, Anuj Jha."
@@ -116,7 +116,7 @@ export async function consume(a, kind) {
 }
 
 export function limitResponse(a, kind, h) {
-  if (a.guest) return json({ error: 'Your free guest trial is finished. Sign up free to keep going: you get 100 messages and 10 images every day.', code: 'guest_limit' }, 429, h);
+  if (a.guest) return json({ error: 'Your free guest trial is finished. Sign up free to keep going: you get 100 messages and 3 images every day.', code: 'guest_limit' }, 429, h);
   const n = PLANS[a.plan][kind];
   return json({ error: `You've used all ${n} ${kind === 'msgs' ? 'messages' : 'images'} for today on your plan. Upgrade for more, or come back tomorrow.`, code: 'limit' }, 429, h);
 }
