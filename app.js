@@ -1,22 +1,21 @@
 /* ============================ SETTINGS ============================ */
+const C = window.PERSES_CONFIG || {};
 const CONFIG = {
   API_BASE: "",
-  SUPABASE_URL: "https://cmtougdkugmkgwifzqut.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_EAjcrfX1Rq-UVED3SEA_BQ_qohQR-SM",   // PUBLISHABLE key
-  LOGO_URL: "https://i.ibb.co/BVj29ptv/AI-logo.png",               // logo with background
-  LOGO_NOBG: "https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png",        // logo without background (AI avatar)
-  CONTACT_EMAIL: "your-email@example.com",                         // shown in Privacy / Terms. CHANGE THIS
-  CHECKOUT: { pro: "", elite: "" },
+  SUPABASE_URL: C.SUPABASE_URL, SUPABASE_ANON_KEY: C.SUPABASE_ANON_KEY,
+  LOGO_URL: C.LOGO_URL, LOGO_NOBG: C.LOGO_NOBG,
+  CONTACT_EMAIL: C.CONTACT_EMAIL || 'your-email@example.com',
+  CHECKOUT: C.CHECKOUT || { pro: '', elite: '' },
   LIMITS: { free: { msgs: 100, imgs: 3 }, pro: { msgs: 1000, imgs: 15 }, elite: { msgs: 5000, imgs: 40 } },
   PLANS: [
     { id: 'free', name: 'Perses (Free)', price: '$0', per: '', tag: 'Great for getting started.',
-      pros: ['100 messages per day', '3 AI images per day', 'Reads and explains your images', 'Voice input, camera and web search', 'All modes, templates and chat history'],
-      cons: ['Small "Perses" watermark on images', 'Standard speed, slower when busy', 'No custom background'] },
+      pros: ['100 messages per day', '3 AI images per day', 'Up to 3 projects', 'Share chats by link', 'Reads and explains your images', 'Voice input, camera and web search', 'All modes, tags, templates and history'],
+      cons: ['Small "Perses" watermark on images', 'Standard speed, slower when busy', 'No folder colors or custom background'] },
     { id: 'pro', name: 'Perses Pro', price: '$5.99', per: ' / month', tag: 'For everyday power users.', badge: 'Most popular',
-      pros: ['1,000 messages per day', '15 AI images per day', 'No watermark on images', 'Faster, smarter replies', 'Custom background from your gallery', 'Everything in Free'],
+      pros: ['1,000 messages per day', '15 AI images per day', 'Up to 20 projects with folder colors', 'No watermark on images', 'Faster, smarter replies', 'Custom background from your gallery', 'Everything in Free'],
       cons: ['Daily fair-use limits still apply'] },
     { id: 'elite', name: 'Perses Elite', price: '$10.99', per: ' / month', tag: 'The complete Perses experience.', badge: 'Best value',
-      pros: ['5,000 messages per day', '40 AI images per day', 'No watermark on images', 'Deep-thinking mode for hard questions', 'Top priority, least waiting', 'Custom background from your gallery', 'Early access to new features', 'Everything in Pro'],
+      pros: ['5,000 messages per day', '40 AI images per day', 'Up to 100 projects with folder colors', 'No watermark on images', 'Deep-thinking mode for hard questions', 'Top priority, least waiting', 'Custom background from your gallery', 'Early access to new features', 'Everything in Pro'],
       cons: ['Fair-use limits apply to prevent abuse'] }
   ],
   TEMPLATES: [
@@ -24,34 +23,50 @@ const CONFIG = {
     { i: '✉️', t: 'Cover letter', d: 'Tailored to a job', p: 'Write a cover letter for the position of [job] at [company]. About me: [short background].' },
     { i: '📧', t: 'Email draft', d: 'Polite and clear', p: 'Write a professional email to [person] about [topic]. Tone: [formal / friendly]. Keep it short.' },
     { i: '🧒', t: "Explain like I'm 10", d: 'Simple explanations', p: "Explain [topic] like I'm 10 years old, with a fun example." },
-    { i: '📝', t: 'Summarize text', d: 'Short and clear', p: 'Summarize the following text in 5 bullet points:\n\n[paste text]' },
+    { i: '📝', t: 'Summarize text', d: 'Short and clear', p: '/summarize [paste text]' },
     { i: '📚', t: 'Study plan', d: 'Plan your prep', p: 'Make a 7-day study plan for [subject/exam]. I can study [hours] hours a day. My weak topics: [topics].' },
-    { i: '🐞', t: 'Fix my code', d: 'Find the bug', p: 'Find and fix the bug in this [language] code, and explain what was wrong:\n\n[paste code]' },
+    { i: '🐞', t: 'Fix my code', d: 'Find the bug', p: '/code Find and fix the bug in this [language] code, and explain what was wrong:\n\n[paste code]' },
     { i: '🇮🇳', t: 'Translate to Hindi', d: 'Natural translation', p: 'Translate the following to natural, simple Hindi:\n\n[text]' },
     { i: '📱', t: 'Social media post', d: 'Catchy captions', p: 'Write 3 catchy Instagram captions with hashtags about [topic]. Tone: [fun / professional].' },
     { i: '🎤', t: 'Interview practice', d: 'Mock interview', p: 'Act as an interviewer for a [job] role. Ask me one question at a time and give feedback on my answers.' },
-    { i: '💡', t: 'Business ideas', d: 'Brainstorm', p: 'Give me 10 small business ideas I can start with [budget] in [city/country], with pros and cons.' },
-    { i: '🧮', t: 'Solve step by step', d: 'Math and logic', p: 'Solve this step by step and explain each step simply:\n\n[problem]' }
+    { i: '✨', t: 'Make me a prompt', d: 'Prompt generator', p: '/prompt [describe what you want an AI to do]' },
+    { i: '🧮', t: 'Solve step by step', d: 'Math with formulas', p: '/math [problem]' }
   ],
   VOICE_LANGS: [['en-IN', 'English (India)'], ['hi-IN', 'हिन्दी Hindi'], ['en-US', 'English (US)'], ['bn-IN', 'বাংলা Bengali'], ['ta-IN', 'தமிழ் Tamil'], ['te-IN', 'తెలుగు Telugu'], ['mr-IN', 'मराठी Marathi'], ['gu-IN', 'ગુજરાતી Gujarati'], ['pa-IN', 'ਪੰਜਾਬੀ Punjabi'], ['kn-IN', 'ಕನ್ನಡ Kannada'], ['ml-IN', 'മലയാളം Malayalam'], ['ur-IN', 'اردو Urdu']]
 };
 const MODES_UI = [
   { id: 'default', icon: '💬', name: 'General' }, { id: 'study', icon: '📚', name: 'Study Focus' },
-  { id: 'code', icon: '💻', name: 'Code Helper' }, { id: 'artist', icon: '🎨', name: 'Artist' }, { id: 'writer', icon: '✍️', name: 'Writer' }
+  { id: 'code', icon: '💻', name: 'Code Helper' }, { id: 'math', icon: '🧮', name: 'Math Solver' },
+  { id: 'artist', icon: '🎨', name: 'Artist' }, { id: 'writer', icon: '✍️', name: 'Writer' }
 ];
+/* Slash tags: type /code, /write ... at the start of a message */
+const TAGS = {
+  prompt: { mode: 'default', tpl: t => `Write a detailed, ready-to-use AI prompt for the task below. Include the role, context, constraints, output format and, if helpful, a short example. Output ONLY the prompt inside one code block, then one short line on how to use it.\n\nTask: ${t}` },
+  code: { mode: 'code', tpl: t => t },
+  write: { mode: 'writer', tpl: t => t },
+  math: { mode: 'math', tpl: t => t },
+  summarize: { mode: 'default', tpl: t => t ? `Summarize the following in clear bullet points, then give a one-line takeaway:\n\n${t}` : 'Summarize the document I shared (if there is none, ask me to paste the text): key points first, then a one-line takeaway.', optional: true }
+};
+const TAG_LIST = [['image', '🎨', 'Create a picture'], ['prompt', '✨', 'Write a ready-to-use AI prompt'], ['code', '💻', 'Write or fix code'], ['write', '✍️', 'Polished writing'], ['math', '🧮', 'Solve step by step'], ['summarize', '📝', 'Summarize text']];
 const INFO = {
-  about: ['About Perses', `<p><b>Perses — Your AI for Help.</b> Chat, learn, write, code, understand images, create images, and talk to it in English, Hindi and more.</p>
+  about: ['About Perses', `<p><b>Perses — Your AI for Help.</b> Chat, learn, write, code, solve math, understand images, create images, and talk to it in English, Hindi and more.</p>
     <h3>Who made it?</h3><p>Perses was created by its founder, <b>Anuj Jha</b>, and was established on <b>26 October 2026</b>.</p>
-    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, emails, resumes and cover letters</li><li>Read and describe your photos (upload or use the camera)</li><li>Create images</li><li>Search the web with sources</li><li>Voice input, Hindi and other Indian languages</li><li>Modes: Study Focus, Code Helper, Artist, Writer</li></ul>
+    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, emails, resumes and cover letters</li><li>Solve math with formulas</li><li>Read and describe your photos (upload or use the camera)</li><li>Create images</li><li>Search the web with sources</li><li>Voice input, Hindi and other Indian languages</li><li>Modes, projects, pinned chats and share links</li></ul>
     <h3>What does it cost?</h3><p>Free (100 messages and 3 images a day), Pro ($5.99/month) and Elite ($10.99/month). Tap Upgrade to compare.</p>
     <p><small>Contact: ${'${EMAIL}'}</small></p>`],
+  guide: ['Guide', `<h3>Slash tags</h3><p>Type <b>/</b> at the start of a message and pick one:</p>
+    <ul><li><b>/image</b> a cozy cabin at sunrise — create a picture</li><li><b>/prompt</b> write a cold email — get a ready-to-use AI prompt</li><li><b>/code</b> a Python function to reverse a list — code with explanation</li><li><b>/write</b> a farewell speech for my teacher — polished writing</li><li><b>/math</b> solve 2x² − 5x + 2 = 0 — step by step with formulas</li><li><b>/summarize</b> your text — short summary</li></ul>
+    <h3>Modes</h3><p>Pick a mode in the sidebar: General, Study Focus, Code Helper, Math Solver, Artist, Writer. Each one changes how Perses answers.</p>
+    <h3>The + button</h3><p>Take a photo, upload an image, create an image, turn on web search, open prompt templates, or choose your voice language.</p>
+    <h3>Organize</h3><p>Use ⋯ on a chat to pin, rename, move to a project, share a link, or export. Projects can have their own instructions, and Pro/Elite can color them. On any answer, tap 🌿 to branch a new chat from that point.</p>
+    <h3>Memory</h3><p>Say "remember that I prefer short answers" and Perses will keep it. Edit it any time in Settings.</p>`],
   privacy: ['Privacy Policy', `<p><small>Last updated: 28 October 2026</small></p>
-    <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages and images you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li></ul>
-    <h3>How it is used</h3><p>Your messages are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history is stored in your own browser. We do not sell your personal data.</p>
-    <h3>Your choices</h3><p>You can edit your details in Settings, clear chats any time, and ask us to delete your account by emailing ${'${EMAIL}'}.</p>
+    <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages and images you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li><li>Chats you choose to share by link (text only), stored until you stop sharing</li></ul>
+    <h3>How it is used</h3><p>Your messages are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history, projects and folders are stored in your own browser. We do not sell your personal data.</p>
+    <h3>Your choices</h3><p>You can edit your details in Settings, delete chats any time, and ask us to delete your account by emailing ${'${EMAIL}'}.</p>
     <h3>Age</h3><p>Perses is for people aged 13 and over.</p>`],
   terms: ['Terms of Use', `<p><small>Last updated: 28 October 2026</small></p>
-    <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout.</li><li>You are responsible for the content you submit and must have the right to use it.</li><li>The service is provided "as is" without guarantees.</li></ul>
+    <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout.</li><li>You are responsible for the content you submit and for chats you share by link.</li><li>The service is provided "as is" without guarantees.</li></ul>
     <p>Questions: ${'${EMAIL}'}</p>`]
 };
 /* ================================================================== */
@@ -60,13 +75,28 @@ const $ = s => document.querySelector(s);
 const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 const RANK = { free: 0, pro: 1, elite: 2 };
 const PLAN_NAME = { free: 'Perses Free', pro: 'Perses Pro', elite: 'Perses Elite' };
+const PROJECT_LIMIT = { free: 3, pro: 20, elite: 100 };
+const PCOLORS = [['#ff5a00', '🟠 Orange'], ['#e5484d', '🔴 Red'], ['#f5b700', '🟡 Yellow'], ['#30a46c', '🟢 Green'], ['#0091ff', '🔵 Blue'], ['#8e4ec6', '🟣 Purple']];
+const SHARE_ID = new URLSearchParams(location.search).get('s');
+
+/* Plugin hooks: extra files (docs.js, voice.js ...) plug in here */
+const Perses = {
+  attach: [], menu: [], afterReply: [], bodyExtra: [], enhancers: [], starters: [], started: false,
+  onStart(fn) { this.starters.push(fn); if (this.started) { try { fn(); } catch (e) { console.error(e); } } },
+  fire(list, ...a) { list.forEach(f => { try { f(...a); } catch (e) { console.error(e); } }); }
+};
 
 let user = null, profile = null, booted = null, guest = true;
-let chats = [], currentId = null, pending = [], busy = false, abortCtl = null, authMode = 'login';
-let mode = localStorage.getItem('perses_mode') || 'default', imgMode = false, searchMode = false;
+let chats = [], projects = [], activeProject = null, currentId = null, pending = [], busy = false, abortCtl = null, authMode = 'login';
+let mode = localStorage.getItem('perses_mode') || 'default', imgMode = false, searchMode = false, tagOpen = false;
 
 const els = { app: $('#app'), history: $('#history'), messages: $('#messages'), welcome: $('#welcome'), scroll: $('#scroll'), input: $('#input'), send: $('#sendBtn'), previews: $('#previews'), file: $('#fileInput') };
-const plan = () => (guest ? 'free' : profile?.plan || 'free');
+function plan() {
+  if (guest) return 'free';
+  const p = profile?.plan || 'free';
+  if (p !== 'free' && profile?.plan_expires && new Date(profile.plan_expires) < new Date()) return 'free';
+  return p;
+}
 const isPremium = () => !guest && plan() !== 'free';
 const dispName = () => profile?.display_name || profile?.username || 'Guest';
 
@@ -74,31 +104,55 @@ document.querySelectorAll('[data-logo]').forEach(i => { i.src = CONFIG.LOGO_URL;
 
 /* ---------------- helpers ---------------- */
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2800); }
-const md = text => DOMPurify.sanitize(marked.parse(text || '', { gfm: true, breaks: true }));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Markdown + math ($...$, $$...$$, \(...\), \[...\]) */
+function md(text) {
+  const maths = [];
+  const stash = (m, d) => { maths.push([m.trim(), d]); return `@@M${maths.length - 1}@@`; };
+  const parts = String(text || '').split(/(```[\s\S]*?```|`[^`\n]+`)/g);
+  const src = parts.map((p, i) => i % 2 ? p : p
+    .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => stash(m, true))
+    .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => stash(m, true))
+    .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => stash(m, false))
+    .replace(/(^|[^\\$\w])\$(?!\s)([^$\n]+?)\$(?![\w$])/g, (s, pre, m) => /\s$/.test(m) ? s : pre + stash(m, false))
+  ).join('');
+  let html = DOMPurify.sanitize(marked.parse(src, { gfm: true, breaks: true }));
+  html = html.replace(/@@M(\d+)@@/g, (_, i) => { const [m, d] = maths[+i]; return `<span class="tex" data-d="${d ? 1 : 0}" data-t="${esc(m)}"></span>`; });
+  return html;
+}
 function enhance(root) {
   root.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+  root.querySelectorAll('.tex').forEach(el => {
+    if (el.dataset.done) return; el.dataset.done = 1;
+    try { katex.render(el.dataset.t, el, { displayMode: el.dataset.d === '1', throwOnError: false }); } catch { el.textContent = el.dataset.t; }
+  });
   root.querySelectorAll('pre').forEach(pre => {
     if (pre.parentElement.classList.contains('codebox')) return;
     const code = pre.querySelector('code'); if (!code) return;
     const lang = (code.className.match(/language-(\S+)/) || [])[1] || 'code';
     try { hljs.highlightElement(code); } catch {}
-    const box = document.createElement('div'); box.className = 'codebox';
+    const box = document.createElement('div'); box.className = 'codebox'; box.dataset.lang = lang;
     const bar = document.createElement('div'); bar.className = 'codebar';
     const l = document.createElement('span'); l.textContent = lang;
     const b = document.createElement('button'); b.className = 'copy'; b.textContent = 'Copy';
     bar.append(l, b); pre.replaceWith(box); box.append(bar, pre);
   });
+  Perses.fire(Perses.enhancers, root);
 }
 const nearBottom = () => els.scroll.scrollHeight - els.scroll.scrollTop - els.scroll.clientHeight < 140;
 const toBottom = () => { els.scroll.style.scrollBehavior = 'auto'; els.scroll.scrollTop = els.scroll.scrollHeight; };
 function autosize() { els.input.style.height = 'auto'; els.input.style.height = Math.min(els.input.scrollHeight, 200) + 'px'; }
 function setBusy(b) { busy = b; $('#sendIcon').style.display = b ? 'none' : ''; $('#stopIcon').style.display = b ? '' : 'none'; els.send.classList.toggle('stop', b); }
-function screen(name) { ['auth', 'nameScreen', 'resetScreen'].forEach(id => { $('#' + id).hidden = id !== name; }); $('#app').hidden = name !== 'app'; }
+function screen(name) {
+  if (SHARE_ID && name === 'app') name = 'shareView';
+  ['auth', 'nameScreen', 'resetScreen', 'shareView'].forEach(id => { $('#' + id).hidden = id !== name; });
+  $('#app').hidden = name !== 'app';
+}
 const open = id => { $('#' + id).hidden = false; };
 const close = id => { $('#' + id).hidden = true; };
 
-/* ---- in-app pop-up dialogs (replace the browser's boxes) ---- */
+/* ---- in-app pop-up dialogs ---- */
 function dialog({ title, text = '', input = false, multiline = false, value = '', ok = 'OK', cancel = 'Cancel', danger = false }) {
   return new Promise(res => {
     const d = $('#dlg'), f = $('#dlgField'), ta = $('#dlgArea'), okb = $('#dlgOk'), cb = $('#dlgCancel');
@@ -118,7 +172,7 @@ function dialog({ title, text = '', input = false, multiline = false, value = ''
   });
 }
 const uiConfirm = (title, text, ok = 'Delete') => dialog({ title, text, ok, danger: true }).then(v => v === true);
-const uiPrompt = (title, value) => dialog({ title, input: true, value, ok: 'Save' });
+const uiPrompt = (title, value, ok = 'Save') => dialog({ title, input: true, value, ok });
 
 /* ---- small floating menu ---- */
 function popMenu(anchor, items, up = false) {
@@ -140,6 +194,10 @@ document.querySelectorAll('.modal:not(#dlg)').forEach(m => m.addEventListener('c
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal:not(#dlg)').forEach(m => { m.hidden = true; }); });
 function openInfo(k) { $('#infoTitle').textContent = INFO[k][0]; $('#infoBody').innerHTML = INFO[k][1].replaceAll('${EMAIL}', esc(CONFIG.CONTACT_EMAIL)); open('infoModal'); }
 document.querySelectorAll('[data-info]').forEach(b => b.onclick = () => openInfo(b.dataset.info));
+
+/* cookie notice */
+if (!localStorage.getItem('perses_cookie')) $('#cookie').hidden = false;
+$('#cookieOk').onclick = () => { localStorage.setItem('perses_cookie', '1'); $('#cookie').hidden = true; };
 
 /* ---------------- theme ---------------- */
 function setTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('perses_theme', t); $('#themeBtn').textContent = t === 'dark' ? '☀️' : '🌙'; }
@@ -242,7 +300,7 @@ $('#logoutName').onclick = () => sb.auth.signOut();
 /* ---------------- session handling ---------------- */
 async function loadProfile() {
   for (let i = 0; i < 4; i++) {
-    const { data } = await sb.from('profiles').select('username,plan,display_name,birthday,avatar,memory').eq('id', user.id).maybeSingle();
+    const { data } = await sb.from('profiles').select('username,plan,display_name,birthday,avatar,memory,plan_expires').eq('id', user.id).maybeSingle();
     if (data) { profile = data; return data; }
     await new Promise(r => setTimeout(r, 600));
   }
@@ -266,14 +324,16 @@ sb.auth.onAuthStateChange((ev, session) => {
   if (session && ['SIGNED_IN', 'INITIAL_SESSION', 'USER_UPDATED'].includes(ev)) setTimeout(() => boot(session), 0);
 });
 
-function resetUi() { chats = loadChats(); currentId = null; els.messages.innerHTML = ''; }
+function resetUi() { chats = loadChats(); projects = loadProjects(); activeProject = null; currentId = null; els.messages.innerHTML = ''; }
 function startApp() {
   guest = false; document.body.classList.remove('guest'); screen('app'); resetUi();
   paintUser(); paintPlan(); applyBg(); refreshUsage(); renderModes(); newChat(); fx.start(); birthdayCheck();
+  Perses.started = true; Perses.fire(Perses.starters);
 }
 function startGuest() {
   guest = true; user = null; profile = null; document.body.classList.add('guest'); document.body.classList.remove('has-bg'); screen('app'); resetUi();
   paintUser(); renderModes(); $('#usage').textContent = 'Guest trial · sign up free for 100 messages a day'; newChat(); fx.start();
+  Perses.started = true; Perses.fire(Perses.starters);
 }
 function paintUser() {
   const a = $('#uAva');
@@ -285,8 +345,8 @@ function paintUser() {
 function paintPlan() { $('#uPlan').textContent = PLAN_NAME[plan()]; $('#upgradeSide').hidden = $('#upgradeTop').hidden = plan() === 'elite'; }
 window.addEventListener('focus', async () => {
   if (!user || !profile) return;
-  const { data } = await sb.from('profiles').select('plan').eq('id', user.id).maybeSingle();
-  if (data && data.plan !== profile.plan) { profile.plan = data.plan; paintPlan(); applyBg(); refreshUsage(); }
+  const { data } = await sb.from('profiles').select('plan,plan_expires').eq('id', user.id).maybeSingle();
+  if (data && (data.plan !== profile.plan || data.plan_expires !== profile.plan_expires)) { Object.assign(profile, data); paintPlan(); applyBg(); refreshUsage(); renderHistory(); }
 });
 async function authHeaders() {
   const h = { 'Content-Type': 'application/json' };
@@ -324,9 +384,12 @@ function birthdayCheck() {
   confetti(); dialog({ title: `🎂 Happy Birthday, ${dispName()}!`, text: 'Wishing you an amazing year ahead. With love, Perses', ok: 'Thank you!', cancel: '' });
 }
 
-/* ---------------- chat storage (per account, on this device) ---------------- */
+/* ---------------- storage (per account, on this device) ---------------- */
 const CK = () => 'perses_chats_' + (user ? user.id : 'guest');
+const PK = () => 'perses_projects_' + (user ? user.id : 'guest');
 function loadChats() { try { return JSON.parse(localStorage.getItem(CK()) || '[]'); } catch { return []; } }
+function loadProjects() { try { return JSON.parse(localStorage.getItem(PK()) || '[]'); } catch { return []; } }
+function saveProjects() { try { localStorage.setItem(PK(), JSON.stringify(projects)); } catch {} }
 function saveChats() {
   const arr = [...chats];
   for (;;) {
@@ -352,24 +415,97 @@ function pickMode(id) {
   toast(MODES_UI.find(m => m.id === id).name + ' mode on');
 }
 
+/* ---------------- projects ---------------- */
+const pcolor = p => (isPremium() && p.color) ? p.color : 'var(--accent)';
+async function newProject() {
+  const lim = PROJECT_LIMIT[plan()];
+  if (projects.length >= lim) { toast(`Your plan allows ${lim} projects.`); guest ? showAuth('signup') : openUpgrade(); return; }
+  const n = await uiPrompt('New project', '', 'Create');
+  if (!n || !n.trim()) return;
+  projects.push({ id: uid(), name: n.trim().slice(0, 40), color: null, instr: '', open: true }); saveProjects(); renderHistory();
+}
+$('#newProject').onclick = newProject;
+function projectMenu(p, anchor) {
+  popMenu(anchor, [
+    ['✏️  Rename', async () => { const n = await uiPrompt('Rename project', p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); saveProjects(); renderHistory(); } }],
+    ['📝  Instructions', async () => {
+      const v = await dialog({ title: 'Project instructions', text: 'Perses follows these in every chat inside this project.', input: true, multiline: true, value: p.instr || '', ok: 'Save' });
+      if (v !== null) { p.instr = v.trim().slice(0, 1500); saveProjects(); toast('Instructions saved'); }
+    }],
+    ['🎨  Folder color' + (isPremium() ? '' : ' (Pro)'), () => {
+      if (!isPremium()) { toast('Folder colors are a Pro & Elite feature.'); guest ? showAuth('signup') : openUpgrade(); return; }
+      popMenu(anchor, PCOLORS.map(([c, n]) => [n, () => { p.color = c; saveProjects(); renderHistory(); }]));
+    }],
+    ['🗑️  Delete project', async () => {
+      if (!(await uiConfirm('Delete this project?', 'Its chats are kept and moved to Recent Chats.'))) return;
+      chats.forEach(c => { if (c.project === p.id) c.project = null; });
+      projects = projects.filter(x => x.id !== p.id); if (activeProject === p.id) activeProject = null;
+      saveProjects(); saveChats(); renderHistory();
+    }, true]
+  ]);
+}
+
 /* ---------------- sidebar: chats ---------------- */
+function chatRow(c) {
+  const row = document.createElement('div'); row.className = 'h-item' + (c.id === currentId ? ' active' : '');
+  const t = document.createElement('button'); t.className = 'h-title'; t.textContent = (c.pinned ? '📌 ' : '') + c.title;
+  t.onclick = () => { openChat(c.id); els.app.classList.remove('open'); };
+  const d = document.createElement('button'); d.className = 'h-more'; d.textContent = '⋯'; d.title = 'More';
+  d.onclick = e => {
+    e.stopPropagation();
+    popMenu(d, [
+      ['📌  ' + (c.pinned ? 'Unpin' : 'Pin to top'), () => { c.pinned = !c.pinned; saveChats(); renderHistory(); }],
+      ['✏️  Rename', () => renameChat(c)],
+      ['📁  Move to project…', () => moveMenu(c, d)],
+      ['🔗  Share link', () => shareChat(c)],
+      ...(c.shareId ? [['🚫  Stop sharing', () => unshareChat(c)]] : []),
+      ['📄  Export as PDF', () => exportPdf(c)],
+      ['⬇️  Export as Markdown', () => exportMd(c)],
+      ['🗑️  Delete', () => deleteChat(c), true]
+    ]);
+  };
+  row.append(t, d); return row;
+}
+function moveMenu(c, anchor) {
+  const items = projects.map(p => [(c.project === p.id ? '✓ ' : '📁 ') + p.name, () => { c.project = p.id; p.open = true; saveChats(); saveProjects(); renderHistory(); toast('Moved to ' + p.name); }]);
+  items.push(['✖  No project', () => { c.project = null; saveChats(); renderHistory(); }]);
+  if (!projects.length) { toast('Create a project first with the ＋ next to PROJECTS.'); return; }
+  popMenu(anchor, items);
+}
 function renderHistory() {
   const q = $('#chatSearch').value.trim().toLowerCase();
-  els.history.innerHTML = '';
-  const list = [...chats].sort((a, b) => b.updated - a.updated)
-    .filter(c => !q || c.title.toLowerCase().includes(q) || c.messages.some(m => (m.content || '').toLowerCase().includes(q)));
-  if (!list.length) { els.history.innerHTML = `<div class="empty">${q ? 'No chats found' : 'No chats yet'}</div>`; return; }
-  list.forEach(c => {
-    const row = document.createElement('div'); row.className = 'h-item' + (c.id === currentId ? ' active' : '');
-    const t = document.createElement('button'); t.className = 'h-title'; t.textContent = c.title;
-    t.onclick = () => { openChat(c.id); els.app.classList.remove('open'); };
-    const d = document.createElement('button'); d.className = 'h-more'; d.textContent = '⋯'; d.title = 'More';
-    d.onclick = e => {
-      e.stopPropagation();
-      popMenu(d, [['✏️  Rename', () => renameChat(c)], ['📄  Export as PDF', () => exportPdf(c)], ['⬇️  Export as Markdown', () => exportMd(c)], ['🗑️  Delete', () => deleteChat(c), true]]);
-    };
-    row.append(t, d); els.history.append(row);
+  const match = c => !q || c.title.toLowerCase().includes(q) || c.messages.some(m => (m.content || '').toLowerCase().includes(q));
+  const sorted = [...chats].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updated - a.updated);
+
+  const pb = $('#projects'); pb.innerHTML = '';
+  projects.forEach(p => {
+    const list = sorted.filter(c => c.project === p.id && match(c));
+    if (q && !list.length) return;
+    const isOpen = q ? true : p.open !== false;
+    const box = document.createElement('div'); box.className = 'proj'; box.style.setProperty('--pc', pcolor(p));
+    const head = document.createElement('div'); head.className = 'p-head';
+    const t = document.createElement('button'); t.className = 'p-title';
+    t.innerHTML = `<span class="p-dot"></span><span class="n"></span><small>${list.length}</small><small>${isOpen ? '▾' : '▸'}</small>`;
+    t.querySelector('.n').textContent = p.name;
+    t.onclick = () => { p.open = !isOpen; saveProjects(); renderHistory(); };
+    const plus = document.createElement('button'); plus.className = 'h-more'; plus.textContent = '＋'; plus.title = 'New chat in this project';
+    plus.onclick = e => { e.stopPropagation(); newChat(p.id); els.app.classList.remove('open'); };
+    const more = document.createElement('button'); more.className = 'h-more'; more.textContent = '⋯'; more.title = 'Project options';
+    more.onclick = e => { e.stopPropagation(); projectMenu(p, more); };
+    head.append(t, plus, more); box.append(head);
+    if (isOpen) {
+      const body = document.createElement('div'); body.className = 'p-body';
+      list.forEach(c => body.append(chatRow(c)));
+      if (!list.length) { const em = document.createElement('div'); em.className = 'empty'; em.textContent = 'No chats yet'; body.append(em); }
+      box.append(body);
+    }
+    pb.append(box);
   });
+
+  els.history.innerHTML = '';
+  const rec = sorted.filter(c => !c.project && match(c));
+  if (!rec.length) els.history.innerHTML = `<div class="empty">${q ? 'No chats found' : 'No chats yet'}</div>`;
+  rec.forEach(c => els.history.append(chatRow(c)));
 }
 $('#chatSearch').oninput = renderHistory;
 async function deleteChat(c) {
@@ -387,23 +523,75 @@ function exportMd(c) {
 }
 function exportPdf(c) {
   const w = window.open('', '_blank'); if (!w) { toast('Please allow pop-ups to export'); return; }
-  const rows = c.messages.map(m => `<div class="${m.role === 'user' ? 'u' : 'a'}"><b>${m.role === 'user' ? 'You' : 'Perses'}</b>${m.image ? `<p><img src="${m.image}"></p>` : md(m.content)}</div>`).join('');
+  const plain = h => h.replace(/<span class="tex"[^>]*data-t="([^"]*)"[^>]*><\/span>/g, '$1');
+  const rows = c.messages.map(m => `<div class="${m.role === 'user' ? 'u' : 'a'}"><b>${m.role === 'user' ? 'You' : 'Perses'}</b>${m.image ? `<p><img src="${m.image}"></p>` : plain(md(m.content))}</div>`).join('');
   w.document.write(`<!doctype html><title>${esc(c.title)}</title><style>body{font-family:Arial,sans-serif;max-width:760px;margin:30px auto;padding:0 16px;line-height:1.55}.u{background:#f1f1f1;padding:8px 12px;border-radius:10px;margin:14px 0}.a{margin:14px 0}h1{font-size:22px}pre{background:#f6f6f6;padding:10px;white-space:pre-wrap}img{max-width:100%}</style><h1>${esc(c.title)}</h1><p><small>Exported from Perses</small></p>${rows}`);
   w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 500);
 }
-function newChat() {
+function newChat(pid = null) {
   if (busy) abortCtl?.abort();
-  currentId = null; els.messages.innerHTML = ''; els.welcome.style.display = '';
+  activeProject = pid; currentId = null; els.messages.innerHTML = ''; els.welcome.style.display = '';
   pending = []; renderPreviews(); renderHistory(); els.input.focus();
 }
 function openChat(id) {
   if (busy) abortCtl?.abort();
-  currentId = id; const c = cur();
+  currentId = id; const c = cur(); activeProject = c.project || null;
   if (c.mode) { mode = c.mode; renderModes(); }
   els.messages.innerHTML = ''; els.welcome.style.display = c.messages.length ? 'none' : '';
   c.messages.forEach((m, i) => addMsg(m, i)); renderHistory(); toBottom();
 }
 $('#newChat').onclick = () => { newChat(); els.app.classList.remove('open'); };
+
+/* ---------------- share by link ---------------- */
+async function shareChat(c) {
+  if (guest) { showAuth('signup'); toast('Log in to share chats.'); return; }
+  const go = await dialog({ title: 'Share this chat?', text: 'Anyone with the link can read this chat (text only, images are not included). You can stop sharing any time.', ok: 'Create link' });
+  if (!go) return;
+  const data = { messages: c.messages.map(m => ({ role: m.role, content: m.image ? '[image]' : String(m.content || '') })) };
+  if (JSON.stringify(data).length > 500000) { toast('This chat is too long to share.'); return; }
+  let id = c.shareId, err = null;
+  if (id) {
+    const r = await sb.from('shared_chats').update({ title: c.title.slice(0, 120), data }).eq('id', id).select('id');
+    if (r.error) err = r.error; else if (!r.data?.length) id = null;
+  }
+  if (!id && !err) {
+    const r = await sb.from('shared_chats').insert({ owner: user.id, title: c.title.slice(0, 120), data }).select('id').single();
+    err = r.error; id = r.data?.id;
+  }
+  if (err || !id) { toast('Could not create the link: ' + (err?.message || 'unknown error')); return; }
+  c.shareId = id; saveChats();
+  const link = location.origin + location.pathname + '?s=' + id;
+  try { await navigator.clipboard.writeText(link); } catch {}
+  dialog({ title: 'Link ready 🔗', text: 'Copied to your clipboard. Anyone with this link can read the chat.', input: true, value: link, ok: 'Done', cancel: '' });
+}
+async function unshareChat(c) {
+  await sb.from('shared_chats').delete().eq('id', c.shareId);
+  c.shareId = null; saveChats(); toast('Sharing stopped');
+}
+async function loadShared(id) {
+  screen('shareView');
+  const { data, error } = await sb.rpc('get_shared', { p_id: id });
+  const row = Array.isArray(data) ? data[0] : data;
+  const box = $('#shareBody'); box.innerHTML = '';
+  if (error || !row) { $('#shareTitle').textContent = 'Chat not found'; box.innerHTML = '<p class="hint">This link is invalid, or the owner stopped sharing it.</p>'; return; }
+  document.title = row.title + ' — Perses'; $('#shareTitle').textContent = row.title;
+  (row.data?.messages || []).forEach(m => {
+    const w = document.createElement('div'); w.className = 'msg ' + (m.role === 'user' ? 'user' : 'ai');
+    const av = document.createElement('img'); av.className = 'avatar'; av.src = CONFIG.LOGO_NOBG; av.alt = '';
+    const b = document.createElement('div'); b.className = 'bubble'; const body = document.createElement('div'); body.className = 'body';
+    if (m.role === 'user') body.textContent = m.content; else { body.innerHTML = md(m.content); enhance(body); }
+    b.append(body); w.append(av, b); box.append(w);
+  });
+}
+$('#shareOpen').onclick = () => { location.href = location.pathname; };
+
+/* ---------------- branch ---------------- */
+function branchFrom(i) {
+  const chat = cur(); if (!chat || busy) return;
+  const copy = JSON.parse(JSON.stringify(chat.messages.slice(0, i + 1), (k, v) => (k === 'full' ? undefined : v)));
+  const b = { id: uid(), title: '🌿 ' + chat.title.replace(/^🌿\s*/, '').slice(0, 36), mode: chat.mode, project: chat.project || null, messages: copy, updated: Date.now(), branchOf: chat.id };
+  chats.unshift(b); saveChats(); openChat(b.id); toast('Branched! Continue from here 🌿');
+}
 
 /* ---------------- messages ---------------- */
 function addMsg(m, i) {
@@ -419,7 +607,7 @@ function addMsg(m, i) {
   else { body.innerHTML = md(m.content); enhance(body); }
   const act = document.createElement('div'); act.className = 'actions';
   if (m.role === 'assistant') {
-    act.innerHTML = `<button data-a="copy">Copy</button><button data-a="regen">Regenerate</button>${m.image ? '' : '<button data-a="listen">🔊</button>'}<button data-a="up" class="${m.rating === 1 ? 'on' : ''}">👍</button><button data-a="down" class="${m.rating === -1 ? 'on' : ''}">👎</button>`;
+    act.innerHTML = `<button data-a="copy" title="Copy">Copy</button><button data-a="regen" title="Regenerate">Regenerate</button>${m.image ? '' : '<button data-a="listen" title="Read aloud">🔊</button>'}<button data-a="up" title="Good answer" class="${m.rating === 1 ? 'on' : ''}">👍</button><button data-a="down" title="Bad answer" class="${m.rating === -1 ? 'on' : ''}">👎</button><button data-a="branch" title="Branch a new chat from here">🌿</button>`;
   } else act.innerHTML = '<button data-a="edit">✏️ Edit</button><button data-a="copy">Copy</button>';
   bub.append(act); els.messages.append(wrap);
   return { wrap, body, bub };
@@ -460,20 +648,37 @@ async function rate(i, val) {
 function listen(text) {
   if (!('speechSynthesis' in window)) { toast('Read-aloud is not supported on this device.'); return; }
   if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
-  const u = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, ' code block ').replace(/[*#_`>]/g, ''));
+  const u = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, ' code block ').replace(/[*#_`>$]/g, ''));
   u.lang = /[\u0900-\u097F]/.test(text) ? 'hi-IN' : (localStorage.getItem('perses_vlang') || 'en-IN'); speechSynthesis.speak(u);
 }
 
 /* ---------------- talking to the server ---------------- */
+function parseTag(text) {
+  const m = /^\/([a-z]+)\b[ \t]*([\s\S]*)$/i.exec(text);
+  const k = m && m[1].toLowerCase();
+  return k && TAGS[k] ? { k, rest: m[2].trim() } : null;
+}
 function toApi(chat) {
   const msgs = chat.messages.slice(-20);
   return msgs.map((m, i) => {
     const recent = i >= msgs.length - 6;
     if (m.role === 'assistant') return { role: 'assistant', content: m.image ? `[Generated an image for: ${m.prompt}]` : (m.content || ' ') };
+    let text = m.content || '';
+    if (m.tag && TAGS[m.tag]) text = TAGS[m.tag].tpl(text.replace(/^\/\w+[ \t]*/, ''));
     if (m.images?.length && recent && m.kind !== 'image')
-      return { role: 'user', content: [{ type: 'text', text: m.content || 'Describe this image.' }, ...m.images.map(u => ({ type: 'image_url', image_url: { url: u } }))] };
-    return { role: 'user', content: m.content || '(image)' };
+      return { role: 'user', content: [{ type: 'text', text: text || 'Describe this image.' }, ...m.images.map(u => ({ type: 'image_url', image_url: { url: u } }))] };
+    return { role: 'user', content: text || '(image)' };
   });
+}
+function buildBody(chat, search) {
+  const last = chat.messages[chat.messages.length - 1];
+  const body = { messages: toApi(chat), mode: (last?.tag && TAGS[last.tag]?.mode) || chat.mode || mode, search: !!search, context: '' };
+  const p = projects.find(x => x.id === chat.project);
+  if (p && p.instr) body.context += `PROJECT "${p.name}" INSTRUCTIONS (follow them): ${p.instr}`;
+  Perses.bodyExtra.forEach(f => {
+    try { const x = f(chat) || {}; if (x.context) body.context += (body.context ? '\n\n' : '') + x.context; for (const k in x) if (k !== 'context') body[k] = x[k]; } catch {}
+  });
+  return body;
 }
 async function apiError(r) {
   let e = {}; try { e = await r.json(); } catch {}
@@ -496,7 +701,7 @@ async function streamReply(chat, search) {
   let raf = 0, failed = false;
   const paint = () => { raf = 0; const nb = nearBottom(); ui.body.innerHTML = md(msg.content); enhance(ui.body); if (nb) toBottom(); };
   try {
-    const r = await fetch(CONFIG.API_BASE + '/api/chat', { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ messages: toApi(chat), mode: chat.mode || mode, search: !!search }), signal: abortCtl.signal });
+    const r = await fetch(CONFIG.API_BASE + '/api/chat', { method: 'POST', headers: await authHeaders(), body: JSON.stringify(buildBody(chat, search)), signal: abortCtl.signal });
     if (!r.ok) throw await apiError(r);
     const reader = r.body.getReader(), dec = new TextDecoder(); let buf = '';
     for (;;) {
@@ -516,7 +721,10 @@ async function streamReply(chat, search) {
   cancelAnimationFrame(raf); setBusy(false);
   if (failed) { ui.bub.querySelector('.actions')?.remove(); return; }
   paint();
-  if (msg.content) { chat.messages.push(msg); chat.updated = Date.now(); saveChats(); renderHistory(); refreshUsage(); }
+  if (msg.content) {
+    chat.messages.push(msg); chat.updated = Date.now(); saveChats(); renderHistory(); refreshUsage();
+    Perses.fire(Perses.afterReply, chat, msg);
+  }
 }
 
 /* image: watermark (free/guest) + a lighter copy for saving */
@@ -569,11 +777,17 @@ async function saveMemory(note) {
   profile.memory = m; await sb.from('profiles').update({ memory: m }).eq('id', user.id); toast('Saved to memory 🧠');
 }
 async function submit(text, images, forceImage) {
+  images = images || [];
+  const tg = parseTag(text);
   let chat = cur();
-  if (!chat) { chat = { id: uid(), title: (text || 'Image chat').slice(0, 40), mode, messages: [], updated: Date.now() }; chats.unshift(chat); currentId = chat.id; }
+  if (!chat) {
+    chat = { id: uid(), title: (text.replace(/^\/\w+[ \t]*/, '') || 'Image chat').slice(0, 40) || 'New chat', mode, project: activeProject, messages: [], updated: Date.now() };
+    chats.unshift(chat); currentId = chat.id;
+  }
   const slash = /^\/image\s+/i.test(text);
-  const wantImg = forceImage || slash || imgMode || (!images.length && IMG_INTENT.test(text));
-  const u = { role: 'user', content: text, images: images || [], kind: wantImg ? 'image' : 'chat' };
+  const wantImg = forceImage || slash || imgMode || (!images.length && !tg && IMG_INTENT.test(text));
+  const u = { role: 'user', content: text, images, kind: wantImg ? 'image' : 'chat' };
+  if (tg && !wantImg) u.tag = tg.k;
   chat.messages.push(u); chat.updated = Date.now();
   els.welcome.style.display = 'none'; addMsg(u, chat.messages.length - 1);
   saveChats(); renderHistory(); toBottom();
@@ -587,8 +801,10 @@ async function send(override) {
   if (busy) { abortCtl?.abort(); return; }
   const text = (typeof override === 'string' ? override : els.input.value).trim();
   if (!text && !pending.length) return;
+  const tg = parseTag(text);
+  if (tg && !tg.rest && !TAGS[tg.k].optional && !pending.length) { toast(`Add a description after /${tg.k}, e.g. /${tg.k} …`); return; }
   const imgs = pending.slice();
-  els.input.value = ''; autosize(); pending = []; renderPreviews();
+  els.input.value = ''; autosize(); pending = []; renderPreviews(); $('#rowMenu').hidden = true;
   await submit(text, imgs, false);
 }
 async function regenerate(i) {
@@ -641,15 +857,17 @@ function paintChips() {
   [[imgMode, '🎨 Create image', () => { imgMode = false; }], [searchMode, '🌐 Web search', () => { searchMode = false; }]].forEach(([on, label, off]) => {
     if (!on) return; const b = document.createElement('button'); b.className = 'chip'; b.textContent = label + ' ✕'; b.onclick = () => { off(); paintChips(); }; c.append(b);
   });
-  els.input.placeholder = imgMode ? 'Describe the image you want…' : 'Message Perses...';
+  els.input.placeholder = imgMode ? 'Describe the image you want…' : 'Message Perses...  (type / for tags)';
 }
 $('#attachBtn').onclick = e => {
   e.stopPropagation(); const btn = e.currentTarget;
+  const extra = Perses.attach.map(x => typeof x === 'function' ? x() : x).filter(Boolean);
   popMenu(btn, [
     ['📷  Take a photo', () => $('#camInput').click()],
     ['🖼️  Upload image', () => els.file.click()],
     ['🎨  Create an image', () => { imgMode = true; paintChips(); els.input.focus(); }],
     ...(guest ? [] : [['🌐  Web search', () => { searchMode = true; paintChips(); els.input.focus(); }]]),
+    ...extra,
     ['🧩  Prompt templates', openTemplates],
     ['🎙️  Voice language', () => popMenu(btn, CONFIG.VOICE_LANGS.map(([c, n]) => [n, () => { localStorage.setItem('perses_vlang', c); toast('Voice language: ' + n); }]), true)]
   ], true);
@@ -669,6 +887,14 @@ $('#micBtn').onclick = () => {
   rec.onerror = ev => { toast(ev.error === 'not-allowed' ? 'Please allow microphone access.' : 'Voice error: ' + ev.error); };
   try { rec.start(); $('#micBtn').classList.add('on'); } catch { rec = null; }
 };
+
+/* slash-tag suggestions: type "/" */
+function tagHint() {
+  const m = /^\/([a-z]*)$/i.exec(els.input.value);
+  const items = m ? TAG_LIST.filter(t => t[0].startsWith(m[1].toLowerCase())).map(([k, i, d]) => [`${i}  /${k} — ${d}`, () => { els.input.value = '/' + k + ' '; autosize(); els.input.focus(); }]) : [];
+  if (!items.length) { if (tagOpen) { $('#rowMenu').hidden = true; tagOpen = false; } return; }
+  popMenu($('.bar'), items, true); tagOpen = true;
+}
 
 /* ---------------- templates + gallery ---------------- */
 function openTemplates() {
@@ -707,7 +933,7 @@ function choose(id) {
   if (url) window.open(url, '_blank', 'noopener'); else toast('Payments are not switched on yet. Coming very soon!');
 }
 function openUpgrade() { if (guest) { showAuth('signup'); return; } renderPlans(); open('upgradeModal'); }
-$('#upgradeSide').onclick = $('#upgradeTop').onclick = openUpgrade;
+$('#upgradeSide').onclick = $('#upgradeTop').onclick = () => openUpgrade();
 
 /* ---------------- settings, user menu, background ---------------- */
 const BGK = () => 'perses_bg_' + user.id;
@@ -756,12 +982,15 @@ $('#sPassBtn').onclick = async () => {
 };
 $('#userBtn').onclick = e => {
   e.stopPropagation();
+  const extra = Perses.menu.map(x => typeof x === 'function' ? x() : x).filter(Boolean);
   popMenu(e.currentTarget, [
     ['⚙️  Settings', openSettings],
     ['🖼️  Custom background', () => { if (!isPremium()) { toast('Custom backgrounds are a Pro & Elite feature.'); openUpgrade(); return; } $('#bgFile').click(); }],
     ['✖  Remove background', () => { localStorage.removeItem(BGK()); applyBg(); toast('Background removed'); }],
     ['🌗  Switch theme', toggleTheme],
+    ['📖  Guide', () => openInfo('guide')],
     ['ℹ️  About', () => openInfo('about')], ['🔒  Privacy', () => openInfo('privacy')], ['📜  Terms', () => openInfo('terms')],
+    ...extra,
     ['⎋  Log out', () => sb.auth.signOut()]
   ], true);
 };
@@ -794,7 +1023,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) fx.st
 
 /* ---------------- events ---------------- */
 els.send.onclick = () => send();
-els.input.addEventListener('input', autosize);
+els.input.addEventListener('input', () => { autosize(); tagHint(); });
 els.input.addEventListener('keydown', e => {
   const touch = matchMedia('(pointer:coarse)').matches;
   if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !touch) { e.preventDefault(); send(); }
@@ -822,6 +1051,7 @@ els.messages.addEventListener('click', e => {
     else if (act === 'edit') startEdit(wrap);
     else if (act === 'up') rate(i, 1);
     else if (act === 'down') rate(i, -1);
+    else if (act === 'branch') branchFrom(i);
     else if (act === 'listen') listen(wrap.querySelector('.body').innerText);
     return;
   }
@@ -830,4 +1060,14 @@ els.messages.addEventListener('click', e => {
 });
 $('#galleryBox').addEventListener('click', e => {
   if (e.target.tagName === 'IMG') { const lb = document.createElement('div'); lb.className = 'lightbox'; const big = new Image(); big.src = e.target.src; lb.append(big); lb.onclick = () => lb.remove(); document.body.append(lb); }
+});
+
+/* open Privacy / Terms / Guide from links like app#privacy */
+if (['#privacy', '#terms', '#about', '#guide'].includes(location.hash)) openInfo(location.hash.slice(1));
+/* public share link */
+if (SHARE_ID) loadShared(SHARE_ID);
+
+/* load extra feature files (added in Part 2 and 3). Missing files are simply skipped. */
+['tools', 'docs', 'voice', 'billing', 'account', 'tour'].forEach(n => {
+  const s = document.createElement('script'); s.src = n + '.js'; s.async = false; s.onerror = () => s.remove(); document.body.append(s);
 });
