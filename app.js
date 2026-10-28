@@ -818,7 +818,7 @@ els.messages.addEventListener('click', e => {
   if (a) {
     const wrap = a.closest('.msg'), i = +wrap.dataset.i, act = a.dataset.a;
     if (act === 'copy') navigator.clipboard.writeText(wrap.querySelector('.body').innerText).then(() => toast('Copied'));
-    else if (act === 'regen') regenerate(i - (cur().messages[i - 1]?.role === 'user' ? 0 : 0) + 0 === i ? i : i);
+    else if (act === 'regen') regenerate(i);
     else if (act === 'edit') startEdit(wrap);
     else if (act === 'up') rate(i, 1);
     else if (act === 'down') rate(i, -1);
