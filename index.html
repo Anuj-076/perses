@@ -9,7 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="extras.css">
 </head>
 <body class="guest">
 
@@ -70,6 +72,16 @@
   </div>
 </div>
 
+<!-- SHARED CHAT (read-only public view) -->
+<div id="shareView" class="screen" hidden>
+  <div class="sharewrap">
+    <div class="sharebar"><img data-logo alt=""><b>Perses</b><button id="shareOpen" class="btn pri">Open Perses</button></div>
+    <h1 id="shareTitle"></h1>
+    <div class="sharemeta">Shared chat · read-only</div>
+    <div id="shareBody"></div>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app" hidden>
   <div id="overlay"></div>
@@ -79,11 +91,17 @@
       <button id="newChat" class="icon-btn" title="New chat" aria-label="New chat">+</button>
       <button id="closeSide" class="icon-btn only-mobile" aria-label="Close menu">✕</button>
     </div>
-    <div class="side-label">MODES</div>
-    <div id="modes" class="modes"></div>
-    <div class="side-label">RECENT CHATS</div>
-    <input id="chatSearch" class="search" placeholder="Search chats…" autocomplete="off">
-    <nav id="history"></nav>
+
+    <div id="sideScroll">
+      <div class="side-label">MODES</div>
+      <div id="modes" class="modes"></div>
+      <div class="sec-head"><span class="side-label">PROJECTS</span><button id="newProject" class="mini-plus" title="New project" aria-label="New project">＋</button></div>
+      <div id="projects"></div>
+      <div class="side-label">RECENT CHATS</div>
+      <input id="chatSearch" class="search" placeholder="Search chats…" autocomplete="off">
+      <nav id="history"></nav>
+    </div>
+
     <div class="side-foot">
       <div id="usage" class="usage"></div>
       <button id="galleryBtn" class="sidebtn">🖼️ Image gallery</button>
@@ -119,7 +137,7 @@
         <div class="cards">
           <button class="card" data-p="Help me write a professional cover letter. Ask me for the job and my experience."><span>📄</span>Write a cover letter</button>
           <button class="card" data-p="Explain how the internet works like I'm 10 years old."><span>🧒</span>Explain like I'm 10</button>
-          <button class="card" data-p="I have a bug in my code. Ask me to paste it, then find and fix the problem."><span>💻</span>Fix my code</button>
+          <button class="card" data-p="/math Solve 2x^2 - 5x + 2 = 0 step by step"><span>🧮</span>Solve a math problem</button>
           <button class="card" data-p="/image a cozy mountain cabin at sunrise, glowing windows, misty valley, cinematic"><span>🎨</span>Create an image</button>
         </div>
         <button id="moreTpl" class="link">More prompt templates →</button>
@@ -136,7 +154,7 @@
         </button>
         <input type="file" id="fileInput" accept="image/*" multiple hidden>
         <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
-        <textarea id="input" rows="1" placeholder="Message Perses..." enterkeyhint="send"></textarea>
+        <textarea id="input" rows="1" placeholder="Message Perses...  (type / for tags)" enterkeyhint="send"></textarea>
         <button id="micBtn" class="icon-btn flat" title="Voice input" aria-label="Voice input">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v4"/></svg>
         </button>
@@ -207,7 +225,7 @@
   </div>
 </div>
 
-<!-- INFO (About / Privacy / Terms) -->
+<!-- INFO -->
 <div id="infoModal" class="modal" hidden>
   <div class="sheet">
     <button class="x" data-close="infoModal" aria-label="Close">✕</button>
@@ -216,15 +234,20 @@
   </div>
 </div>
 
-<!-- IN-APP DIALOG (replaces browser pop-ups) -->
+<!-- IN-APP DIALOG -->
 <div id="dlg" class="modal dlgmodal" hidden>
   <div class="sheet small">
     <h3 id="dlgTitle"></h3>
     <p id="dlgText" class="hint"></p>
     <input id="dlgField" class="field" hidden>
-    <textarea id="dlgArea" class="field" rows="4" hidden></textarea>
+    <textarea id="dlgArea" class="field" rows="5" hidden></textarea>
     <div class="dlgbtns"><button id="dlgCancel" class="btn"></button><button id="dlgOk" class="btn pri"></button></div>
   </div>
+</div>
+
+<div id="cookie" hidden>
+  <p>🍪 Perses uses only essential cookies and local storage to keep you signed in and remember your settings. No ads, no tracking. <button class="link" data-info="privacy">Learn more</button></p>
+  <button id="cookieOk" class="btn pri">Got it</button>
 </div>
 
 <div id="rowMenu" class="pop" hidden></div>
@@ -233,7 +256,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
