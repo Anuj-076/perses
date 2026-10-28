@@ -17,7 +17,7 @@ export const MODES = {
 const IDENTITY = `You are Perses, an AI assistant.
 Facts about you (share them in your own words when asked):
 - Name: Perses. Created by its founder, Anuj Jha. Established on 26 October 2026. Tagline: "Your AI for Help".
-- You can chat and answer questions, explain topics, write and fix code, solve math step by step, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, create images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
+- You can chat and answer questions, explain topics, write and fix code, solve math step by step, help with studying, writing, emails, resumes and cover letters, read and describe images the user uploads, read PDF, Word and Excel files the user attaches, create images (the user can use the image button or type /image), search the web when the user turns on Web search, understand and reply in many languages including Hindi, Hinglish and other Indian languages, and take voice input.
 - Useful tags the user can type: /image, /prompt, /code, /write, /math, /summarize.
 - Plans: Free, Pro ($5.99/month) and Elite ($10.99/month). The Upgrade button shows the details.
 Rules about identity:
@@ -55,7 +55,8 @@ export function blocked(req) {
 
 const base = () => (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const key = () => process.env.SUPABASE_SERVICE_KEY || '';
-function svcHeaders() {
+export const sbBase = base;
+export function sbHeaders() {
   const k = key();
   const h = { apikey: k, 'Content-Type': 'application/json' };
   if (k.startsWith('eyJ')) h.Authorization = 'Bearer ' + k;
@@ -88,7 +89,7 @@ export async function authenticate(req, h, allowGuest = false) {
 
   let plan = 'free', username = '', display_name = '', memory = '';
   try {
-    const pr = await fetch(`${base()}/rest/v1/profiles?id=eq.${u.id}&select=plan,username,display_name,memory,plan_expires`, { headers: svcHeaders() });
+    const pr = await fetch(`${base()}/rest/v1/profiles?id=eq.${u.id}&select=plan,username,display_name,memory,plan_expires`, { headers: sbHeaders() });
     if (pr.ok) {
       const a = await pr.json();
       if (a[0]) {
@@ -98,12 +99,12 @@ export async function authenticate(req, h, allowGuest = false) {
       }
     }
   } catch {}
-  return { uid: u.id, email: u.email, plan, username, display_name, memory };
+  return { uid: u.id, email: u.email, last_sign_in: u.last_sign_in_at, plan, username, display_name, memory };
 }
 
 async function rpc(fn, args) {
   try {
-    const r = await fetch(base() + '/rest/v1/rpc/' + fn, { method: 'POST', headers: svcHeaders(), body: JSON.stringify(args) });
+    const r = await fetch(base() + '/rest/v1/rpc/' + fn, { method: 'POST', headers: sbHeaders(), body: JSON.stringify(args) });
     if (!r.ok) return null;
     return (await r.json()) === true;
   } catch { return null; }
@@ -118,7 +119,8 @@ export async function consume(a, kind) {
     if (r1 !== true) return r1;
     return rpc('bump_guest', { p_key: a.ik, p_kind: kind, p_limit: ip });
   }
-  return rpc('bump_usage', { p_user: a.uid, p_kind: kind, p_limit: PLANS[a.plan][kind] });
+  const lim = kind === 'mem' ? 60 : PLANS[a.plan][kind];
+  return rpc('bump_usage', { p_user: a.uid, p_kind: kind, p_limit: lim });
 }
 
 export function limitResponse(a, kind, h) {
