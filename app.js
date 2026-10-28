@@ -5,11 +5,12 @@ const CONFIG = {
   SUPABASE_URL: C.SUPABASE_URL, SUPABASE_ANON_KEY: C.SUPABASE_ANON_KEY,
   LOGO_URL: C.LOGO_URL, LOGO_NOBG: C.LOGO_NOBG,
   CONTACT_EMAIL: C.CONTACT_EMAIL || 'your-email@example.com',
-  CHECKOUT: C.CHECKOUT || { pro: '', elite: '' },
+  CHECKOUT: C.CHECKOUT || {},
+  ADMINS: (C.ADMINS || []).map(x => x.toLowerCase()), OWNER_EMAIL: (C.OWNER_EMAIL || '').toLowerCase(),
   LIMITS: { free: { msgs: 100, imgs: 3 }, pro: { msgs: 1000, imgs: 15 }, elite: { msgs: 5000, imgs: 40 } },
   PLANS: [
     { id: 'free', name: 'Perses (Free)', price: '$0', per: '', tag: 'Great for getting started.',
-      pros: ['100 messages per day', '3 AI images per day', 'Up to 3 projects', 'Share chats by link', 'Reads and explains your images', 'Voice input, camera and web search', 'All modes, tags, templates and history'],
+      pros: ['100 messages per day', '3 AI images per day', 'Up to 3 projects', 'Read PDF, Word and Excel files', 'Code runner, live preview and voice chat', 'Share chats by link', 'Voice input, camera and web search'],
       cons: ['Small "Perses" watermark on images', 'Standard speed, slower when busy', 'No folder colors or custom background'] },
     { id: 'pro', name: 'Perses Pro', price: '$5.99', per: ' / month', tag: 'For everyday power users.', badge: 'Most popular',
       pros: ['1,000 messages per day', '15 AI images per day', 'Up to 20 projects with folder colors', 'No watermark on images', 'Faster, smarter replies', 'Custom background from your gallery', 'Everything in Free'],
@@ -19,25 +20,24 @@ const CONFIG = {
       cons: ['Fair-use limits apply to prevent abuse'] }
   ],
   TEMPLATES: [
-    { i: '📄', t: 'Resume writer', d: 'Build a strong resume', p: 'Write a professional resume for me. My name: [name]. Target job: [job]. My experience and skills: [details].' },
-    { i: '✉️', t: 'Cover letter', d: 'Tailored to a job', p: 'Write a cover letter for the position of [job] at [company]. About me: [short background].' },
-    { i: '📧', t: 'Email draft', d: 'Polite and clear', p: 'Write a professional email to [person] about [topic]. Tone: [formal / friendly]. Keep it short.' },
-    { i: '🧒', t: "Explain like I'm 10", d: 'Simple explanations', p: "Explain [topic] like I'm 10 years old, with a fun example." },
-    { i: '📝', t: 'Summarize text', d: 'Short and clear', p: '/summarize [paste text]' },
-    { i: '📚', t: 'Study plan', d: 'Plan your prep', p: 'Make a 7-day study plan for [subject/exam]. I can study [hours] hours a day. My weak topics: [topics].' },
-    { i: '🐞', t: 'Fix my code', d: 'Find the bug', p: '/code Find and fix the bug in this [language] code, and explain what was wrong:\n\n[paste code]' },
-    { i: '🇮🇳', t: 'Translate to Hindi', d: 'Natural translation', p: 'Translate the following to natural, simple Hindi:\n\n[text]' },
-    { i: '📱', t: 'Social media post', d: 'Catchy captions', p: 'Write 3 catchy Instagram captions with hashtags about [topic]. Tone: [fun / professional].' },
-    { i: '🎤', t: 'Interview practice', d: 'Mock interview', p: 'Act as an interviewer for a [job] role. Ask me one question at a time and give feedback on my answers.' },
-    { i: '✨', t: 'Make me a prompt', d: 'Prompt generator', p: '/prompt [describe what you want an AI to do]' },
-    { i: '🧮', t: 'Solve step by step', d: 'Math with formulas', p: '/math [problem]' }
+    { i: 'Resume', t: 'Resume writer', d: 'Build a strong resume', p: 'Write a professional resume for me. My name: [name]. Target job: [job]. My experience and skills: [details].' },
+    { i: 'Letter', t: 'Cover letter', d: 'Tailored to a job', p: 'Write a cover letter for the position of [job] at [company]. About me: [short background].' },
+    { i: 'Email', t: 'Email draft', d: 'Polite and clear', p: 'Write a professional email to [person] about [topic]. Tone: [formal / friendly]. Keep it short.' },
+    { i: 'Simple', t: "Explain like I'm 10", d: 'Simple explanations', p: "Explain [topic] like I'm 10 years old, with a fun example." },
+    { i: 'Summary', t: 'Summarize text', d: 'Short and clear', p: '/summarize [paste text]' },
+    { i: 'Study', t: 'Study plan', d: 'Plan your prep', p: 'Make a 7-day study plan for [subject/exam]. I can study [hours] hours a day. My weak topics: [topics].' },
+    { i: 'Code', t: 'Fix my code', d: 'Find the bug', p: '/code Find and fix the bug in this [language] code, and explain what was wrong:\n\n[paste code]' },
+    { i: 'Hindi', t: 'Translate to Hindi', d: 'Natural translation', p: 'Translate the following to natural, simple Hindi:\n\n[text]' },
+    { i: 'Social', t: 'Social media post', d: 'Catchy captions', p: 'Write 3 catchy Instagram captions with hashtags about [topic]. Tone: [fun / professional].' },
+    { i: 'Interview', t: 'Interview practice', d: 'Mock interview', p: 'Act as an interviewer for a [job] role. Ask me one question at a time and give feedback on my answers.' },
+    { i: 'Prompt', t: 'Make me a prompt', d: 'Prompt generator', p: '/prompt [describe what you want an AI to do]' },
+    { i: 'Math', t: 'Solve step by step', d: 'Math with formulas', p: '/math [problem]' }
   ],
-  VOICE_LANGS: [['en-IN', 'English (India)'], ['hi-IN', 'हिन्दी Hindi'], ['en-US', 'English (US)'], ['bn-IN', 'বাংলা Bengali'], ['ta-IN', 'தமிழ் Tamil'], ['te-IN', 'తెలుగు Telugu'], ['mr-IN', 'मराठी Marathi'], ['gu-IN', 'ગુજરાતી Gujarati'], ['pa-IN', 'ਪੰਜਾਬੀ Punjabi'], ['kn-IN', 'ಕನ್ನಡ Kannada'], ['ml-IN', 'മലയാളം Malayalam'], ['ur-IN', 'اردو Urdu']]
+  VOICE_LANGS: [['en-IN', 'English (India)'], ['hi-IN', 'Hindi'], ['en-US', 'English (US)'], ['bn-IN', 'Bengali'], ['ta-IN', 'Tamil'], ['te-IN', 'Telugu'], ['mr-IN', 'Marathi'], ['gu-IN', 'Gujarati'], ['pa-IN', 'Punjabi'], ['kn-IN', 'Kannada'], ['ml-IN', 'Malayalam'], ['ur-IN', 'Urdu']]
 };
 const MODES_UI = [
-  { id: 'default', icon: '💬', name: 'General' }, { id: 'study', icon: '📚', name: 'Study Focus' },
-  { id: 'code', icon: '💻', name: 'Code Helper' }, { id: 'math', icon: '🧮', name: 'Math Solver' },
-  { id: 'artist', icon: '🎨', name: 'Artist' }, { id: 'writer', icon: '✍️', name: 'Writer' }
+  { id: 'default', name: 'General' }, { id: 'study', name: 'Study Focus' }, { id: 'code', name: 'Code Helper' },
+  { id: 'math', name: 'Math Solver' }, { id: 'artist', name: 'Artist' }, { id: 'writer', name: 'Writer' }
 ];
 /* Slash tags: type /code, /write ... at the start of a message */
 const TAGS = {
@@ -45,29 +45,30 @@ const TAGS = {
   code: { mode: 'code', tpl: t => t },
   write: { mode: 'writer', tpl: t => t },
   math: { mode: 'math', tpl: t => t },
-  summarize: { mode: 'default', tpl: t => t ? `Summarize the following in clear bullet points, then give a one-line takeaway:\n\n${t}` : 'Summarize the document I shared (if there is none, ask me to paste the text): key points first, then a one-line takeaway.', optional: true }
+  summarize: { mode: 'default', tpl: t => t ? `Summarize the following in clear bullet points, then give a one-line takeaway:\n\n${t}` : 'Summarize the document I shared (if there is none, ask me to paste the text or attach a file): key points first, then a one-line takeaway.', optional: true }
 };
-const TAG_LIST = [['image', '🎨', 'Create a picture'], ['prompt', '✨', 'Write a ready-to-use AI prompt'], ['code', '💻', 'Write or fix code'], ['write', '✍️', 'Polished writing'], ['math', '🧮', 'Solve step by step'], ['summarize', '📝', 'Summarize text']];
+const TAG_LIST = [['image', 'Create a picture'], ['prompt', 'Write a ready-to-use AI prompt'], ['code', 'Write or fix code'], ['write', 'Polished writing'], ['math', 'Solve step by step'], ['summarize', 'Summarize text or a document']];
 const INFO = {
-  about: ['About Perses', `<p><b>Perses — Your AI for Help.</b> Chat, learn, write, code, solve math, understand images, create images, and talk to it in English, Hindi and more.</p>
+  about: ['About Perses', `<p><b>Perses - Your AI for Help.</b> Chat, learn, write, code, solve math, read documents, understand images, create images, and talk to it in English, Hindi and more.</p>
     <h3>Who made it?</h3><p>Perses was created by its founder, <b>Anuj Jha</b>, and was established on <b>26 October 2026</b>.</p>
-    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, emails, resumes and cover letters</li><li>Solve math with formulas</li><li>Read and describe your photos (upload or use the camera)</li><li>Create images</li><li>Search the web with sources</li><li>Voice input, Hindi and other Indian languages</li><li>Modes, projects, pinned chats and share links</li></ul>
-    <h3>What does it cost?</h3><p>Free (100 messages and 3 images a day), Pro ($5.99/month) and Elite ($10.99/month). Tap Upgrade to compare.</p>
-    <p><small>Contact: ${'${EMAIL}'}</small></p>`],
+    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, run Python and JavaScript, preview web pages</li><li>Solve math with formulas</li><li>Read PDF, Word and Excel files</li><li>Read and describe your photos, create and restyle images</li><li>Search the web with sources</li><li>Voice input, voice chat, Hindi and other Indian languages</li><li>Modes, projects, pinned chats, share links and automatic memory</li></ul>
+    <h3>What does it cost?</h3><p>Free (100 messages and 3 images a day), Pro ($5.99/month) and Elite ($10.99/month). Yearly plans save 10%. New accounts can try Pro free for 3 days.</p>
+    <p><small>Contact: \${EMAIL}</small></p>`],
   guide: ['Guide', `<h3>Slash tags</h3><p>Type <b>/</b> at the start of a message and pick one:</p>
-    <ul><li><b>/image</b> a cozy cabin at sunrise — create a picture</li><li><b>/prompt</b> write a cold email — get a ready-to-use AI prompt</li><li><b>/code</b> a Python function to reverse a list — code with explanation</li><li><b>/write</b> a farewell speech for my teacher — polished writing</li><li><b>/math</b> solve 2x² − 5x + 2 = 0 — step by step with formulas</li><li><b>/summarize</b> your text — short summary</li></ul>
+    <ul><li><b>/image</b> a cozy cabin at sunrise: create a picture</li><li><b>/prompt</b> write a cold email: get a ready-to-use AI prompt</li><li><b>/code</b> a Python function to reverse a list: code with explanation</li><li><b>/write</b> a farewell speech for my teacher: polished writing</li><li><b>/math</b> solve 2x^2 - 5x + 2 = 0: step by step with formulas</li><li><b>/summarize</b> your text or attached document: short summary</li></ul>
     <h3>Modes</h3><p>Pick a mode in the sidebar: General, Study Focus, Code Helper, Math Solver, Artist, Writer. Each one changes how Perses answers.</p>
-    <h3>The + button</h3><p>Take a photo, upload an image, create an image, turn on web search, open prompt templates, or choose your voice language.</p>
-    <h3>Organize</h3><p>Use ⋯ on a chat to pin, rename, move to a project, share a link, or export. Projects can have their own instructions, and Pro/Elite can color them. On any answer, tap 🌿 to branch a new chat from that point.</p>
-    <h3>Memory</h3><p>Say "remember that I prefer short answers" and Perses will keep it. Edit it any time in Settings.</p>`],
+    <h3>The + button</h3><p>Take a photo, upload an image, create an image, turn on web search, attach a PDF/Word/Excel file, use image tools, start voice chat, or open prompt templates.</p>
+    <h3>Code boxes</h3><p>Every code box has a Copy button. JavaScript and Python boxes have Run, and HTML boxes have Preview.</p>
+    <h3>Organize</h3><p>Use the three dots on a chat to pin, rename, move to a project, share a link or export. On any answer, tap Branch to start a new chat from that point.</p>
+    <h3>Memory</h3><p>Say "remember that I prefer short answers" and Perses will keep it. Automatic memory can also learn your preferences. Edit or turn it off in Settings.</p>`],
   privacy: ['Privacy Policy', `<p><small>Last updated: 28 October 2026</small></p>
-    <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages and images you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li><li>Chats you choose to share by link (text only), stored until you stop sharing</li></ul>
-    <h3>How it is used</h3><p>Your messages are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history, projects and folders are stored in your own browser. We do not sell your personal data.</p>
-    <h3>Your choices</h3><p>You can edit your details in Settings, delete chats any time, and ask us to delete your account by emailing ${'${EMAIL}'}.</p>
+    <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages, images and documents you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li><li>A short memory of your preferences (you control it in Settings)</li><li>Chats you choose to share by link (text only), stored until you stop sharing</li></ul>
+    <h3>How it is used</h3><p>Your messages and documents are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history, projects and folders are stored in your own browser. We do not sell your personal data.</p>
+    <h3>Your choices</h3><p>You can edit your details in Settings, turn off automatic memory, delete chats any time, and delete your whole account from Settings (we email you a code to confirm). Questions: \${EMAIL}</p>
     <h3>Age</h3><p>Perses is for people aged 13 and over.</p>`],
   terms: ['Terms of Use', `<p><small>Last updated: 28 October 2026</small></p>
-    <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout.</li><li>You are responsible for the content you submit and for chats you share by link.</li><li>The service is provided "as is" without guarantees.</li></ul>
-    <p>Questions: ${'${EMAIL}'}</p>`]
+    <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Code you run from a Run button executes in a sandbox on your device. Review code before running it.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout. The free Pro trial is one per account.</li><li>You are responsible for the content you submit and for chats you share by link.</li><li>The service is provided "as is" without guarantees.</li></ul>
+    <p>Questions: \${EMAIL}</p>`]
 };
 /* ================================================================== */
 
@@ -76,17 +77,17 @@ const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 const RANK = { free: 0, pro: 1, elite: 2 };
 const PLAN_NAME = { free: 'Perses Free', pro: 'Perses Pro', elite: 'Perses Elite' };
 const PROJECT_LIMIT = { free: 3, pro: 20, elite: 100 };
-const PCOLORS = [['#ff5a00', '🟠 Orange'], ['#e5484d', '🔴 Red'], ['#f5b700', '🟡 Yellow'], ['#30a46c', '🟢 Green'], ['#0091ff', '🔵 Blue'], ['#8e4ec6', '🟣 Purple']];
+const PCOLORS = [['#ff5a00', 'Orange'], ['#e5484d', 'Red'], ['#f5b700', 'Yellow'], ['#30a46c', 'Green'], ['#0091ff', 'Blue'], ['#8e4ec6', 'Purple']];
 const SHARE_ID = new URLSearchParams(location.search).get('s');
 
 /* Plugin hooks: extra files (docs.js, voice.js ...) plug in here */
 const Perses = {
-  attach: [], menu: [], afterReply: [], bodyExtra: [], enhancers: [], starters: [], started: false,
+  attach: [], menu: [], afterReply: [], bodyExtra: [], enhancers: [], starters: [], opened: [], imageTools: [], started: false,
   onStart(fn) { this.starters.push(fn); if (this.started) { try { fn(); } catch (e) { console.error(e); } } },
   fire(list, ...a) { list.forEach(f => { try { f(...a); } catch (e) { console.error(e); } }); }
 };
 
-let user = null, profile = null, booted = null, guest = true;
+let user = null, profile = null, booted = null, guest = true, guestStarted = false;
 let chats = [], projects = [], activeProject = null, currentId = null, pending = [], busy = false, abortCtl = null, authMode = 'login';
 let mode = localStorage.getItem('perses_mode') || 'default', imgMode = false, searchMode = false, tagOpen = false;
 
@@ -195,12 +196,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') document.que
 function openInfo(k) { $('#infoTitle').textContent = INFO[k][0]; $('#infoBody').innerHTML = INFO[k][1].replaceAll('${EMAIL}', esc(CONFIG.CONTACT_EMAIL)); open('infoModal'); }
 document.querySelectorAll('[data-info]').forEach(b => b.onclick = () => openInfo(b.dataset.info));
 
-/* cookie notice */
+/* cookie notice (sits over the chat) */
 if (!localStorage.getItem('perses_cookie')) $('#cookie').hidden = false;
 $('#cookieOk').onclick = () => { localStorage.setItem('perses_cookie', '1'); $('#cookie').hidden = true; };
 
 /* ---------------- theme ---------------- */
-function setTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('perses_theme', t); $('#themeBtn').textContent = t === 'dark' ? '☀️' : '🌙'; }
+function setTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('perses_theme', t); $('#themeBtn').textContent = t === 'dark' ? 'Light mode' : 'Dark mode'; }
 const toggleTheme = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 $('#themeBtn').onclick = toggleTheme;
@@ -274,12 +275,12 @@ let nameTimer;
 function watchUsername(inputEl, hintEl) {
   inputEl.oninput = () => {
     clearTimeout(nameTimer); const v = inputEl.value.trim();
-    if (!/^[A-Za-z0-9_]{3,20}$/.test(v)) { hintEl.textContent = '3–20 letters, numbers or _ only'; hintEl.className = 'uhint'; return; }
-    hintEl.textContent = 'Checking…'; hintEl.className = 'uhint';
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(v)) { hintEl.textContent = '3-20 letters, numbers or _ only'; hintEl.className = 'uhint'; return; }
+    hintEl.textContent = 'Checking...'; hintEl.className = 'uhint';
     nameTimer = setTimeout(async () => {
       const { data } = await sb.rpc('username_available', { p_name: v });
       if (inputEl.value.trim() !== v) return;
-      hintEl.textContent = data ? '✓ Available' : '✕ Already taken'; hintEl.className = 'uhint ' + (data ? 'ok' : 'bad');
+      hintEl.textContent = data ? 'Available' : 'Already taken'; hintEl.className = 'uhint ' + (data ? 'ok' : 'bad');
     }, 400);
   };
 }
@@ -288,7 +289,7 @@ $('#nameForm').onsubmit = async e => {
   e.preventDefault();
   const username = $('#uname').value.trim(), display_name = $('#dname').value.trim(), birthday = $('#bday').value, m = $('#nameMsg');
   m.className = 'amsg err';
-  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) { m.textContent = 'Username: 3–20 letters, numbers or _ only.'; return; }
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) { m.textContent = 'Username: 3-20 letters, numbers or _ only.'; return; }
   if (!display_name) { m.textContent = 'Please enter your name.'; return; }
   const bErr = checkBirthday(birthday); if (bErr) { m.textContent = bErr; return; }
   const { error } = await sb.from('profiles').update({ username, display_name, birthday }).eq('id', user.id);
@@ -300,7 +301,7 @@ $('#logoutName').onclick = () => sb.auth.signOut();
 /* ---------------- session handling ---------------- */
 async function loadProfile() {
   for (let i = 0; i < 4; i++) {
-    const { data } = await sb.from('profiles').select('username,plan,display_name,birthday,avatar,memory,plan_expires').eq('id', user.id).maybeSingle();
+    const { data } = await sb.from('profiles').select('username,plan,display_name,birthday,avatar,memory,plan_expires,trial_used').eq('id', user.id).maybeSingle();
     if (data) { profile = data; return data; }
     await new Promise(r => setTimeout(r, 600));
   }
@@ -319,20 +320,22 @@ async function boot(session) {
 }
 sb.auth.onAuthStateChange((ev, session) => {
   if (ev === 'PASSWORD_RECOVERY') { screen('resetScreen'); return; }
-  if (ev === 'SIGNED_OUT') { booted = null; user = null; profile = null; setAuthMode('login'); startGuest(); return; }
+  if (ev === 'SIGNED_OUT') { booted = null; user = null; profile = null; setAuthMode('login'); startGuest(true); return; }
   if (ev === 'INITIAL_SESSION' && !session) { startGuest(); return; }
   if (session && ['SIGNED_IN', 'INITIAL_SESSION', 'USER_UPDATED'].includes(ev)) setTimeout(() => boot(session), 0);
 });
 
 function resetUi() { chats = loadChats(); projects = loadProjects(); activeProject = null; currentId = null; els.messages.innerHTML = ''; }
 function startApp() {
-  guest = false; document.body.classList.remove('guest'); screen('app'); resetUi();
+  guest = false; guestStarted = true; document.body.classList.remove('guest'); screen('app'); resetUi();
   paintUser(); paintPlan(); applyBg(); refreshUsage(); renderModes(); newChat(); fx.start(); birthdayCheck();
   Perses.started = true; Perses.fire(Perses.starters);
 }
-function startGuest() {
-  guest = true; user = null; profile = null; document.body.classList.add('guest'); document.body.classList.remove('has-bg'); screen('app'); resetUi();
-  paintUser(); renderModes(); $('#usage').textContent = 'Guest trial · sign up free for 100 messages a day'; newChat(); fx.start();
+function startGuest(force) {
+  if (guestStarted && guest && !force) return;
+  guestStarted = true; guest = true; user = null; profile = null;
+  document.body.classList.add('guest'); document.body.classList.remove('has-bg'); screen('app'); resetUi();
+  paintUser(); renderModes(); $('#usage').textContent = 'Guest trial: sign up free for 100 messages a day'; newChat(); fx.start();
   Perses.started = true; Perses.fire(Perses.starters);
 }
 function paintUser() {
@@ -340,7 +343,7 @@ function paintUser() {
   if (profile?.avatar) { a.style.backgroundImage = `url("${profile.avatar}")`; a.textContent = ''; }
   else { a.style.backgroundImage = ''; a.textContent = (dispName()[0] || 'P').toUpperCase(); }
   $('#uName').textContent = dispName();
-  $('#wHello').textContent = profile ? `Hello, ${dispName()} 👋  Your AI for Help` : 'Your AI for Help';
+  $('#wHello').textContent = profile ? `Hello, ${dispName()}. Your AI for Help` : 'Your AI for Help';
 }
 function paintPlan() { $('#uPlan').textContent = PLAN_NAME[plan()]; $('#upgradeSide').hidden = $('#upgradeTop').hidden = plan() === 'elite'; }
 window.addEventListener('focus', async () => {
@@ -365,14 +368,14 @@ async function refreshUsage() {
     const { data } = await sb.from('usage').select('kind,n').eq('day', day);
     const u = { msgs: 0, imgs: 0 }; (data || []).forEach(r => { u[r.kind] = r.n; });
     const L = CONFIG.LIMITS[plan()];
-    $('#usage').textContent = `${u.msgs}/${L.msgs} messages · ${u.imgs}/${L.imgs} images today`;
+    $('#usage').textContent = `${u.msgs}/${L.msgs} messages, ${u.imgs}/${L.imgs} images today`;
   } catch {}
 }
 function confetti() {
-  const E = ['🎉', '🎊', '✨', '🎂', '🎈'];
-  for (let i = 0; i < 40; i++) {
-    const s = document.createElement('span'); s.className = 'conf'; s.textContent = E[i % 5];
-    s.style.left = Math.random() * 100 + 'vw'; s.style.animationDelay = Math.random() * 1.5 + 's'; s.style.fontSize = 16 + Math.random() * 18 + 'px';
+  const col = ['#ff5a00', '#ff9a3c', '#f5b700', '#30a46c', '#0091ff', '#8e4ec6'];
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('span'); s.className = 'conf';
+    s.style.cssText = `left:${Math.random() * 100}vw;width:${6 + Math.random() * 7}px;height:${10 + Math.random() * 10}px;background:${col[i % 6]};animation-delay:${Math.random() * 1.5}s;border-radius:2px`;
     document.body.append(s); setTimeout(() => s.remove(), 5500);
   }
 }
@@ -381,7 +384,7 @@ function birthdayCheck() {
   const b = profile.birthday.split('-'), n = new Date();
   if (+b[1] !== n.getMonth() + 1 || +b[2] !== n.getDate()) return;
   const k = 'perses_bday_' + user.id + n.getFullYear(); if (localStorage.getItem(k)) return; localStorage.setItem(k, 1);
-  confetti(); dialog({ title: `🎂 Happy Birthday, ${dispName()}!`, text: 'Wishing you an amazing year ahead. With love, Perses', ok: 'Thank you!', cancel: '' });
+  confetti(); dialog({ title: `Happy Birthday, ${dispName()}!`, text: 'Wishing you an amazing year ahead. With love, Perses', ok: 'Thank you!', cancel: '' });
 }
 
 /* ---------------- storage (per account, on this device) ---------------- */
@@ -404,7 +407,7 @@ const cur = () => chats.find(c => c.id === currentId);
 function renderModes() {
   const box = $('#modes'); box.innerHTML = '';
   MODES_UI.forEach(m => {
-    const b = document.createElement('button'); b.className = 'mode' + (m.id === mode ? ' on' : ''); b.textContent = m.icon + ' ' + m.name;
+    const b = document.createElement('button'); b.className = 'mode' + (m.id === mode ? ' on' : ''); b.textContent = m.name;
     b.onclick = () => pickMode(m.id); box.append(b);
   });
 }
@@ -427,16 +430,16 @@ async function newProject() {
 $('#newProject').onclick = newProject;
 function projectMenu(p, anchor) {
   popMenu(anchor, [
-    ['✏️  Rename', async () => { const n = await uiPrompt('Rename project', p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); saveProjects(); renderHistory(); } }],
-    ['📝  Instructions', async () => {
+    ['Rename', async () => { const n = await uiPrompt('Rename project', p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); saveProjects(); renderHistory(); } }],
+    ['Instructions', async () => {
       const v = await dialog({ title: 'Project instructions', text: 'Perses follows these in every chat inside this project.', input: true, multiline: true, value: p.instr || '', ok: 'Save' });
       if (v !== null) { p.instr = v.trim().slice(0, 1500); saveProjects(); toast('Instructions saved'); }
     }],
-    ['🎨  Folder color' + (isPremium() ? '' : ' (Pro)'), () => {
+    ['Folder color' + (isPremium() ? '' : ' (Pro)'), () => {
       if (!isPremium()) { toast('Folder colors are a Pro & Elite feature.'); guest ? showAuth('signup') : openUpgrade(); return; }
       popMenu(anchor, PCOLORS.map(([c, n]) => [n, () => { p.color = c; saveProjects(); renderHistory(); }]));
     }],
-    ['🗑️  Delete project', async () => {
+    ['Delete project', async () => {
       if (!(await uiConfirm('Delete this project?', 'Its chats are kept and moved to Recent Chats.'))) return;
       chats.forEach(c => { if (c.project === p.id) c.project = null; });
       projects = projects.filter(x => x.id !== p.id); if (activeProject === p.id) activeProject = null;
@@ -448,28 +451,28 @@ function projectMenu(p, anchor) {
 /* ---------------- sidebar: chats ---------------- */
 function chatRow(c) {
   const row = document.createElement('div'); row.className = 'h-item' + (c.id === currentId ? ' active' : '');
-  const t = document.createElement('button'); t.className = 'h-title'; t.textContent = (c.pinned ? '📌 ' : '') + c.title;
+  const t = document.createElement('button'); t.className = 'h-title'; t.textContent = (c.pinned ? '[Pinned] ' : '') + c.title;
   t.onclick = () => { openChat(c.id); els.app.classList.remove('open'); };
-  const d = document.createElement('button'); d.className = 'h-more'; d.textContent = '⋯'; d.title = 'More';
+  const d = document.createElement('button'); d.className = 'h-more'; d.textContent = '\u22EF'; d.title = 'More';
   d.onclick = e => {
     e.stopPropagation();
     popMenu(d, [
-      ['📌  ' + (c.pinned ? 'Unpin' : 'Pin to top'), () => { c.pinned = !c.pinned; saveChats(); renderHistory(); }],
-      ['✏️  Rename', () => renameChat(c)],
-      ['📁  Move to project…', () => moveMenu(c, d)],
-      ['🔗  Share link', () => shareChat(c)],
-      ...(c.shareId ? [['🚫  Stop sharing', () => unshareChat(c)]] : []),
-      ['📄  Export as PDF', () => exportPdf(c)],
-      ['⬇️  Export as Markdown', () => exportMd(c)],
-      ['🗑️  Delete', () => deleteChat(c), true]
+      [c.pinned ? 'Unpin' : 'Pin to top', () => { c.pinned = !c.pinned; saveChats(); renderHistory(); }],
+      ['Rename', () => renameChat(c)],
+      ['Move to project...', () => moveMenu(c, d)],
+      ['Share link', () => shareChat(c)],
+      ...(c.shareId ? [['Stop sharing', () => unshareChat(c)]] : []),
+      ['Export as PDF', () => exportPdf(c)],
+      ['Export as Markdown', () => exportMd(c)],
+      ['Delete', () => deleteChat(c), true]
     ]);
   };
   row.append(t, d); return row;
 }
 function moveMenu(c, anchor) {
-  const items = projects.map(p => [(c.project === p.id ? '✓ ' : '📁 ') + p.name, () => { c.project = p.id; p.open = true; saveChats(); saveProjects(); renderHistory(); toast('Moved to ' + p.name); }]);
-  items.push(['✖  No project', () => { c.project = null; saveChats(); renderHistory(); }]);
-  if (!projects.length) { toast('Create a project first with the ＋ next to PROJECTS.'); return; }
+  if (!projects.length) { toast('Create a project first with the + next to PROJECTS.'); return; }
+  const items = projects.map(p => [(c.project === p.id ? 'Selected: ' : '') + p.name, () => { c.project = p.id; p.open = true; saveChats(); saveProjects(); renderHistory(); toast('Moved to ' + p.name); }]);
+  items.push(['No project', () => { c.project = null; saveChats(); renderHistory(); }]);
   popMenu(anchor, items);
 }
 function renderHistory() {
@@ -485,12 +488,12 @@ function renderHistory() {
     const box = document.createElement('div'); box.className = 'proj'; box.style.setProperty('--pc', pcolor(p));
     const head = document.createElement('div'); head.className = 'p-head';
     const t = document.createElement('button'); t.className = 'p-title';
-    t.innerHTML = `<span class="p-dot"></span><span class="n"></span><small>${list.length}</small><small>${isOpen ? '▾' : '▸'}</small>`;
+    t.innerHTML = `<span class="p-dot"></span><span class="n"></span><small>${list.length}</small><small>${isOpen ? '\u25BE' : '\u25B8'}</small>`;
     t.querySelector('.n').textContent = p.name;
     t.onclick = () => { p.open = !isOpen; saveProjects(); renderHistory(); };
-    const plus = document.createElement('button'); plus.className = 'h-more'; plus.textContent = '＋'; plus.title = 'New chat in this project';
+    const plus = document.createElement('button'); plus.className = 'h-more'; plus.textContent = '+'; plus.title = 'New chat in this project';
     plus.onclick = e => { e.stopPropagation(); newChat(p.id); els.app.classList.remove('open'); };
-    const more = document.createElement('button'); more.className = 'h-more'; more.textContent = '⋯'; more.title = 'Project options';
+    const more = document.createElement('button'); more.className = 'h-more'; more.textContent = '\u22EF'; more.title = 'Project options';
     more.onclick = e => { e.stopPropagation(); projectMenu(p, more); };
     head.append(t, plus, more); box.append(head);
     if (isOpen) {
@@ -531,14 +534,14 @@ function exportPdf(c) {
 function newChat(pid = null) {
   if (busy) abortCtl?.abort();
   activeProject = pid; currentId = null; els.messages.innerHTML = ''; els.welcome.style.display = '';
-  pending = []; renderPreviews(); renderHistory(); els.input.focus();
+  pending = []; renderPreviews(); renderHistory(); els.input.focus(); Perses.fire(Perses.opened);
 }
 function openChat(id) {
   if (busy) abortCtl?.abort();
   currentId = id; const c = cur(); activeProject = c.project || null;
   if (c.mode) { mode = c.mode; renderModes(); }
   els.messages.innerHTML = ''; els.welcome.style.display = c.messages.length ? 'none' : '';
-  c.messages.forEach((m, i) => addMsg(m, i)); renderHistory(); toBottom();
+  c.messages.forEach((m, i) => addMsg(m, i)); renderHistory(); toBottom(); Perses.fire(Perses.opened);
 }
 $('#newChat').onclick = () => { newChat(); els.app.classList.remove('open'); };
 
@@ -562,7 +565,7 @@ async function shareChat(c) {
   c.shareId = id; saveChats();
   const link = location.origin + location.pathname + '?s=' + id;
   try { await navigator.clipboard.writeText(link); } catch {}
-  dialog({ title: 'Link ready 🔗', text: 'Copied to your clipboard. Anyone with this link can read the chat.', input: true, value: link, ok: 'Done', cancel: '' });
+  dialog({ title: 'Link ready', text: 'Copied to your clipboard. Anyone with this link can read the chat.', input: true, value: link, ok: 'Done', cancel: '' });
 }
 async function unshareChat(c) {
   await sb.from('shared_chats').delete().eq('id', c.shareId);
@@ -574,7 +577,7 @@ async function loadShared(id) {
   const row = Array.isArray(data) ? data[0] : data;
   const box = $('#shareBody'); box.innerHTML = '';
   if (error || !row) { $('#shareTitle').textContent = 'Chat not found'; box.innerHTML = '<p class="hint">This link is invalid, or the owner stopped sharing it.</p>'; return; }
-  document.title = row.title + ' — Perses'; $('#shareTitle').textContent = row.title;
+  document.title = row.title + ' - Perses'; $('#shareTitle').textContent = row.title;
   (row.data?.messages || []).forEach(m => {
     const w = document.createElement('div'); w.className = 'msg ' + (m.role === 'user' ? 'user' : 'ai');
     const av = document.createElement('img'); av.className = 'avatar'; av.src = CONFIG.LOGO_NOBG; av.alt = '';
@@ -589,8 +592,8 @@ $('#shareOpen').onclick = () => { location.href = location.pathname; };
 function branchFrom(i) {
   const chat = cur(); if (!chat || busy) return;
   const copy = JSON.parse(JSON.stringify(chat.messages.slice(0, i + 1), (k, v) => (k === 'full' ? undefined : v)));
-  const b = { id: uid(), title: '🌿 ' + chat.title.replace(/^🌿\s*/, '').slice(0, 36), mode: chat.mode, project: chat.project || null, messages: copy, updated: Date.now(), branchOf: chat.id };
-  chats.unshift(b); saveChats(); openChat(b.id); toast('Branched! Continue from here 🌿');
+  const b = { id: uid(), title: 'Branch: ' + chat.title.replace(/^Branch:\s*/, '').slice(0, 32), mode: chat.mode, project: chat.project || null, messages: copy, updated: Date.now(), branchOf: chat.id };
+  chats.unshift(b); saveChats(); openChat(b.id); toast('Branched. Continue from here.');
 }
 
 /* ---------------- messages ---------------- */
@@ -607,8 +610,8 @@ function addMsg(m, i) {
   else { body.innerHTML = md(m.content); enhance(body); }
   const act = document.createElement('div'); act.className = 'actions';
   if (m.role === 'assistant') {
-    act.innerHTML = `<button data-a="copy" title="Copy">Copy</button><button data-a="regen" title="Regenerate">Regenerate</button>${m.image ? '' : '<button data-a="listen" title="Read aloud">🔊</button>'}<button data-a="up" title="Good answer" class="${m.rating === 1 ? 'on' : ''}">👍</button><button data-a="down" title="Bad answer" class="${m.rating === -1 ? 'on' : ''}">👎</button><button data-a="branch" title="Branch a new chat from here">🌿</button>`;
-  } else act.innerHTML = '<button data-a="edit">✏️ Edit</button><button data-a="copy">Copy</button>';
+    act.innerHTML = `<button data-a="copy">Copy</button><button data-a="regen">Redo</button>${m.image ? '' : '<button data-a="listen">Listen</button>'}<button data-a="up" class="${m.rating === 1 ? 'on' : ''}">Good</button><button data-a="down" class="${m.rating === -1 ? 'on' : ''}">Bad</button><button data-a="branch" title="Start a new chat from here">Branch</button>`;
+  } else act.innerHTML = '<button data-a="edit">Edit</button><button data-a="copy">Copy</button>';
   bub.append(act); els.messages.append(wrap);
   return { wrap, body, bub };
 }
@@ -618,10 +621,11 @@ function showGenImage(body, src, prompt) {
   img.onerror = () => { body.innerHTML = '<span class="err">Image failed to load. Try again.</span>'; };
   img.src = src; body.append(img);
   const dl = document.createElement('a'); dl.href = src; dl.download = 'perses-image.' + (src.startsWith('data:image/png') ? 'png' : 'jpg'); dl.target = '_blank'; dl.rel = 'noopener';
-  dl.textContent = '⬇ Download'; dl.style.cssText = 'font-size:13px;color:var(--accent)'; body.append(dl);
+  dl.textContent = 'Download'; dl.style.cssText = 'font-size:13px;color:var(--accent);margin-right:14px'; body.append(dl);
+  Perses.fire(Perses.imageTools, body, src);
 }
 function showErr(body, text, btn) {
-  body.innerHTML = ''; const s = document.createElement('span'); s.className = 'err'; s.textContent = '⚠ ' + text; body.append(s);
+  body.innerHTML = ''; const s = document.createElement('span'); s.className = 'err'; s.textContent = 'Error: ' + text; body.append(s);
   if (btn) { const b = document.createElement('button'); b.className = 'mini'; b.textContent = btn[0]; b.onclick = btn[1]; body.append(document.createElement('br'), b); }
 }
 function startEdit(wrap) {
@@ -691,7 +695,7 @@ async function handleFail(e, body) {
     dialog({ title: 'Free trial finished', text: 'Sign up free to keep chatting. You get 100 messages and 3 images every day.', ok: 'Sign up free', cancel: 'Maybe later' }).then(v => { if (v) showAuth('signup'); });
     return;
   }
-  showErr(body, e.message, e.code === 'limit' ? ['⚡ See plans', openUpgrade] : null);
+  showErr(body, e.message, e.code === 'limit' ? ['See plans', openUpgrade] : null);
 }
 async function streamReply(chat, search) {
   const msg = { role: 'assistant', content: '' };
@@ -753,7 +757,7 @@ function processImage(src, watermark) {
 async function makeImage(chat, prompt, imgs) {
   const msg = { role: 'assistant', image: '', prompt };
   const ui = addMsg(msg, chat.messages.length);
-  ui.body.innerHTML = '<div class="typing"><i></i><i></i><i></i></div> <span style="color:var(--dim)">Creating your image… this can take up to a minute</span>';
+  ui.body.innerHTML = '<div class="typing"><i></i><i></i><i></i></div> <span style="color:var(--dim)">Creating your image... this can take up to a minute</span>';
   abortCtl = new AbortController(); setBusy(true);
   try {
     const r = await fetch(CONFIG.API_BASE + '/api/image', { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ prompt, images: imgs || [] }), signal: abortCtl.signal });
@@ -774,7 +778,7 @@ const IMG_INTENT = /\b(generate|create|make|draw|paint|design|render|produce)\b.
 async function saveMemory(note) {
   if (!profile) return;
   const m = ((profile.memory || '') + '\n' + note.trim()).trim().slice(-1800);
-  profile.memory = m; await sb.from('profiles').update({ memory: m }).eq('id', user.id); toast('Saved to memory 🧠');
+  profile.memory = m; await sb.from('profiles').update({ memory: m }).eq('id', user.id); toast('Saved to memory');
 }
 async function submit(text, images, forceImage) {
   images = images || [];
@@ -802,7 +806,7 @@ async function send(override) {
   const text = (typeof override === 'string' ? override : els.input.value).trim();
   if (!text && !pending.length) return;
   const tg = parseTag(text);
-  if (tg && !tg.rest && !TAGS[tg.k].optional && !pending.length) { toast(`Add a description after /${tg.k}, e.g. /${tg.k} …`); return; }
+  if (tg && !tg.rest && !TAGS[tg.k].optional && !pending.length) { toast(`Add a description after /${tg.k}, e.g. /${tg.k} ...`); return; }
   const imgs = pending.slice();
   els.input.value = ''; autosize(); pending = []; renderPreviews(); $('#rowMenu').hidden = true;
   await submit(text, imgs, false);
@@ -848,28 +852,28 @@ function renderPreviews() {
   els.previews.innerHTML = '';
   pending.forEach((src, i) => {
     const d = document.createElement('div'); d.className = 'pv'; const im = new Image(); im.src = src;
-    const x = document.createElement('button'); x.textContent = '✕'; x.onclick = () => { pending.splice(i, 1); renderPreviews(); };
+    const x = document.createElement('button'); x.textContent = '\u2715'; x.onclick = () => { pending.splice(i, 1); renderPreviews(); };
     d.append(im, x); els.previews.append(d);
   });
 }
 function paintChips() {
   const c = $('#chips'); c.innerHTML = '';
-  [[imgMode, '🎨 Create image', () => { imgMode = false; }], [searchMode, '🌐 Web search', () => { searchMode = false; }]].forEach(([on, label, off]) => {
-    if (!on) return; const b = document.createElement('button'); b.className = 'chip'; b.textContent = label + ' ✕'; b.onclick = () => { off(); paintChips(); }; c.append(b);
+  [[imgMode, 'Create image', () => { imgMode = false; }], [searchMode, 'Web search', () => { searchMode = false; }]].forEach(([on, label, off]) => {
+    if (!on) return; const b = document.createElement('button'); b.className = 'chip'; b.textContent = label + ' \u2715'; b.onclick = () => { off(); paintChips(); }; c.append(b);
   });
-  els.input.placeholder = imgMode ? 'Describe the image you want…' : 'Message Perses...  (type / for tags)';
+  els.input.placeholder = imgMode ? 'Describe the image you want...' : 'Message Perses...  (type / for tags)';
 }
 $('#attachBtn').onclick = e => {
   e.stopPropagation(); const btn = e.currentTarget;
   const extra = Perses.attach.map(x => typeof x === 'function' ? x() : x).filter(Boolean);
   popMenu(btn, [
-    ['📷  Take a photo', () => $('#camInput').click()],
-    ['🖼️  Upload image', () => els.file.click()],
-    ['🎨  Create an image', () => { imgMode = true; paintChips(); els.input.focus(); }],
-    ...(guest ? [] : [['🌐  Web search', () => { searchMode = true; paintChips(); els.input.focus(); }]]),
+    ['Take a photo', () => $('#camInput').click()],
+    ['Upload image', () => els.file.click()],
+    ['Create an image', () => { imgMode = true; paintChips(); els.input.focus(); }],
+    ...(guest ? [] : [['Web search', () => { searchMode = true; paintChips(); els.input.focus(); }]]),
     ...extra,
-    ['🧩  Prompt templates', openTemplates],
-    ['🎙️  Voice language', () => popMenu(btn, CONFIG.VOICE_LANGS.map(([c, n]) => [n, () => { localStorage.setItem('perses_vlang', c); toast('Voice language: ' + n); }]), true)]
+    ['Prompt templates', openTemplates],
+    ['Voice language', () => popMenu(btn, CONFIG.VOICE_LANGS.map(([c, n]) => [n, () => { localStorage.setItem('perses_vlang', c); toast('Voice language: ' + n); }]), true)]
   ], true);
 };
 els.file.onchange = () => { addFiles([...els.file.files]); els.file.value = ''; };
@@ -891,7 +895,7 @@ $('#micBtn').onclick = () => {
 /* slash-tag suggestions: type "/" */
 function tagHint() {
   const m = /^\/([a-z]*)$/i.exec(els.input.value);
-  const items = m ? TAG_LIST.filter(t => t[0].startsWith(m[1].toLowerCase())).map(([k, i, d]) => [`${i}  /${k} — ${d}`, () => { els.input.value = '/' + k + ' '; autosize(); els.input.focus(); }]) : [];
+  const items = m ? TAG_LIST.filter(t => t[0].startsWith(m[1].toLowerCase())).map(([k, d]) => [`/${k} - ${d}`, () => { els.input.value = '/' + k + ' '; autosize(); els.input.focus(); }]) : [];
   if (!items.length) { if (tagOpen) { $('#rowMenu').hidden = true; tagOpen = false; } return; }
   popMenu($('.bar'), items, true); tagOpen = true;
 }
@@ -900,7 +904,7 @@ function tagHint() {
 function openTemplates() {
   const box = $('#tplBox'); box.innerHTML = '';
   CONFIG.TEMPLATES.forEach(t => {
-    const b = document.createElement('button'); b.className = 'tpl'; b.innerHTML = `<span>${t.i}</span><b>${esc(t.t)}</b><small>${esc(t.d)}</small>`;
+    const b = document.createElement('button'); b.className = 'tpl'; b.innerHTML = `<em class="tg">${esc(t.i)}</em><b>${esc(t.t)}</b><small>${esc(t.d)}</small>`;
     b.onclick = () => { close('templatesModal'); els.input.value = t.p; autosize(); els.input.focus(); els.app.classList.remove('open'); };
     box.append(b);
   });
@@ -910,7 +914,7 @@ $('#moreTpl').onclick = openTemplates;
 $('#galleryBtn').onclick = () => {
   const box = $('#galleryBox'); box.innerHTML = '';
   const imgs = chats.flatMap(c => c.messages.filter(m => m.image).map(m => m.image)).reverse();
-  if (!imgs.length) box.innerHTML = '<p class="hint">No images yet. Try the 🎨 Create an image option!</p>';
+  if (!imgs.length) box.innerHTML = '<p class="hint">No images yet. Use "Create an image" in the + menu.</p>';
   imgs.forEach(src => { const i = new Image(); i.src = src; box.append(i); });
   els.app.classList.remove('open'); open('galleryModal');
 };
@@ -929,7 +933,7 @@ function renderPlans() {
   });
 }
 function choose(id) {
-  const url = CONFIG.CHECKOUT[id];
+  const c = CONFIG.CHECKOUT[id], url = typeof c === 'string' ? c : c && c.month;
   if (url) window.open(url, '_blank', 'noopener'); else toast('Payments are not switched on yet. Coming very soon!');
 }
 function openUpgrade() { if (guest) { showAuth('signup'); return; } renderPlans(); open('upgradeModal'); }
@@ -964,13 +968,13 @@ $('#sBday').onchange = () => { $('#sAge').textContent = $('#sBday').value ? `(yo
 function sMsg(t, type) { const m = $('#sMsg'); m.textContent = t; m.className = 'amsg ' + type; }
 $('#sSave').onclick = async () => {
   const username = $('#sUser').value.trim(), display_name = $('#sName').value.trim(), birthday = $('#sBday').value, memory = $('#sMem').value.trim().slice(0, 1800);
-  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) return sMsg('Username: 3–20 letters, numbers or _ only.', 'err');
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) return sMsg('Username: 3-20 letters, numbers or _ only.', 'err');
   if (!display_name) return sMsg('Please enter your name.', 'err');
   const bErr = checkBirthday(birthday); if (bErr) return sMsg(bErr, 'err');
   const upd = { username, display_name, birthday, avatar: tmpAvatar, memory };
   const { error } = await sb.from('profiles').update(upd).eq('id', user.id);
   if (error) return sMsg(error.code === '23505' ? 'That username is already taken.' : error.message, 'err');
-  Object.assign(profile, upd); paintUser(); toast('Saved ✓'); close('settingsModal');
+  Object.assign(profile, upd); paintUser(); toast('Saved'); close('settingsModal');
 };
 $('#sPassBtn').onclick = async () => {
   const a = $('#sPass').value, b = $('#sPass2').value;
@@ -978,25 +982,25 @@ $('#sPassBtn').onclick = async () => {
   if (a !== b) return sMsg('The two passwords do not match.', 'err');
   const { error } = await sb.auth.updateUser({ password: a });
   if (error) return sMsg(error.message, 'err');
-  $('#sPass').value = $('#sPass2').value = ''; sMsg('Password updated ✓', 'ok');
+  $('#sPass').value = $('#sPass2').value = ''; sMsg('Password updated', 'ok');
 };
 $('#userBtn').onclick = e => {
   e.stopPropagation();
   const extra = Perses.menu.map(x => typeof x === 'function' ? x() : x).filter(Boolean);
   popMenu(e.currentTarget, [
-    ['⚙️  Settings', openSettings],
-    ['🖼️  Custom background', () => { if (!isPremium()) { toast('Custom backgrounds are a Pro & Elite feature.'); openUpgrade(); return; } $('#bgFile').click(); }],
-    ['✖  Remove background', () => { localStorage.removeItem(BGK()); applyBg(); toast('Background removed'); }],
-    ['🌗  Switch theme', toggleTheme],
-    ['📖  Guide', () => openInfo('guide')],
-    ['ℹ️  About', () => openInfo('about')], ['🔒  Privacy', () => openInfo('privacy')], ['📜  Terms', () => openInfo('terms')],
+    ['Settings', openSettings],
+    ['Custom background', () => { if (!isPremium()) { toast('Custom backgrounds are a Pro & Elite feature.'); openUpgrade(); return; } $('#bgFile').click(); }],
+    ['Remove background', () => { localStorage.removeItem(BGK()); applyBg(); toast('Background removed'); }],
+    ['Switch theme', toggleTheme],
+    ['Guide', () => openInfo('guide')],
+    ['About', () => openInfo('about')], ['Privacy', () => openInfo('privacy')], ['Terms', () => openInfo('terms')],
     ...extra,
-    ['⎋  Log out', () => sb.auth.signOut()]
+    ['Log out', () => sb.auth.signOut()]
   ], true);
 };
 $('#bgFile').onchange = async () => {
   const f = $('#bgFile').files[0]; $('#bgFile').value = ''; if (!f) return;
-  try { const d = await fileToDataUrl(f, 1600, 0.72); localStorage.setItem(BGK(), d); applyBg(); toast('Background set ✨'); }
+  try { const d = await fileToDataUrl(f, 1600, 0.72); localStorage.setItem(BGK(), d); applyBg(); toast('Background set'); }
   catch { toast('That image is too big for this device. Try a smaller one.'); }
 };
 
@@ -1040,7 +1044,7 @@ $('#closeSide').onclick = $('#overlay').onclick = () => els.app.classList.remove
 els.messages.addEventListener('click', e => {
   const cb = e.target.closest('.copy');
   if (cb) {
-    navigator.clipboard.writeText(cb.closest('.codebox').querySelector('code').innerText).then(() => { cb.textContent = 'Copied ✓'; setTimeout(() => cb.textContent = 'Copy', 1600); });
+    navigator.clipboard.writeText(cb.closest('.codebox').querySelector('code').innerText).then(() => { cb.textContent = 'Copied'; setTimeout(() => cb.textContent = 'Copy', 1600); });
     return;
   }
   const a = e.target.closest('[data-a]');
@@ -1062,12 +1066,14 @@ $('#galleryBox').addEventListener('click', e => {
   if (e.target.tagName === 'IMG') { const lb = document.createElement('div'); lb.className = 'lightbox'; const big = new Image(); big.src = e.target.src; lb.append(big); lb.onclick = () => lb.remove(); document.body.append(lb); }
 });
 
-/* open Privacy / Terms / Guide from links like app#privacy */
+/* ---------------- start ---------------- */
+startGuest();   /* show the chat right away; the login check below may switch to your account */
+const AUTHQ = new URLSearchParams(location.search).get('auth');
+if (AUTHQ === 'login' || AUTHQ === 'signup') showAuth(AUTHQ);
 if (['#privacy', '#terms', '#about', '#guide'].includes(location.hash)) openInfo(location.hash.slice(1));
-/* public share link */
 if (SHARE_ID) loadShared(SHARE_ID);
 
-/* load extra feature files (added in Part 2 and 3). Missing files are simply skipped. */
-['tools', 'docs', 'voice', 'billing', 'account', 'tour'].forEach(n => {
+/* extra feature files. Missing files are simply skipped. */
+['tools', 'docs', 'voice', 'memory', 'billing', 'account', 'tour'].forEach(n => {
   const s = document.createElement('script'); s.src = n + '.js'; s.async = false; s.onerror = () => s.remove(); document.body.append(s);
 });
