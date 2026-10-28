@@ -2,21 +2,21 @@
 const CONFIG = {
   API_BASE: "",
   SUPABASE_URL: "https://cmtougdkugmkgwifzqut.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_EAjcrfX1Rq-UVED3SEA_BQ_qohQR-SM",   // PUBLISHABLE key only
+  SUPABASE_ANON_KEY: "sb_publishable_EAjcrfX1Rq-UVED3SEA_BQ_qohQR-SM",   // PUBLISHABLE key
   LOGO_URL: "https://i.ibb.co/BVj29ptv/AI-logo.png",               // logo with background
   LOGO_NOBG: "https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png",        // logo without background (AI avatar)
   CONTACT_EMAIL: "your-email@example.com",                         // shown in Privacy / Terms. CHANGE THIS
   CHECKOUT: { pro: "", elite: "" },
-  LIMITS: { free: { msgs: 100, imgs: 10 }, pro: { msgs: 1000, imgs: 100 }, elite: { msgs: 5000, imgs: 500 } },
+  LIMITS: { free: { msgs: 100, imgs: 3 }, pro: { msgs: 1000, imgs: 15 }, elite: { msgs: 5000, imgs: 40 } },
   PLANS: [
     { id: 'free', name: 'Perses (Free)', price: '$0', per: '', tag: 'Great for getting started.',
-      pros: ['100 messages per day', '10 AI images per day', 'Reads and explains your images', 'Voice input, camera and web search', 'All modes, templates and chat history'],
+      pros: ['100 messages per day', '3 AI images per day', 'Reads and explains your images', 'Voice input, camera and web search', 'All modes, templates and chat history'],
       cons: ['Small "Perses" watermark on images', 'Standard speed, slower when busy', 'No custom background'] },
     { id: 'pro', name: 'Perses Pro', price: '$5.99', per: ' / month', tag: 'For everyday power users.', badge: 'Most popular',
-      pros: ['1,000 messages per day', '100 AI images per day', 'No watermark on images', 'Higher-quality images', 'Faster, smarter replies', 'Custom background from your gallery', 'Everything in Free'],
+      pros: ['1,000 messages per day', '15 AI images per day', 'No watermark on images', 'Faster, smarter replies', 'Custom background from your gallery', 'Everything in Free'],
       cons: ['Daily fair-use limits still apply'] },
     { id: 'elite', name: 'Perses Elite', price: '$10.99', per: ' / month', tag: 'The complete Perses experience.', badge: 'Best value',
-      pros: ['5,000 messages per day', '500 AI images per day', 'No watermark, best image quality', 'Deep-thinking mode for hard questions', 'Top priority, least waiting', 'Custom background from your gallery', 'Early access to new features', 'Everything in Pro'],
+      pros: ['5,000 messages per day', '40 AI images per day', 'No watermark on images', 'Deep-thinking mode for hard questions', 'Top priority, least waiting', 'Custom background from your gallery', 'Early access to new features', 'Everything in Pro'],
       cons: ['Fair-use limits apply to prevent abuse'] }
   ],
   TEMPLATES: [
@@ -42,8 +42,8 @@ const MODES_UI = [
 const INFO = {
   about: ['About Perses', `<p><b>Perses — Your AI for Help.</b> Chat, learn, write, code, understand images, create images, and talk to it in English, Hindi and more.</p>
     <h3>Who made it?</h3><p>Perses was created by its founder, <b>Anuj Jha</b>, and was established on <b>26 October 2026</b>.</p>
-    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, emails, resumes and cover letters</li><li>Read and describe your photos (upload or use the camera)</li><li>Create and edit images</li><li>Search the web with sources</li><li>Voice input, Hindi and other Indian languages</li><li>Modes: Study Focus, Code Helper, Artist, Writer</li></ul>
-    <h3>What does it cost?</h3><p>Free (100 messages and 10 images a day), Pro ($5.99/month) and Elite ($10.99/month). Tap Upgrade to compare.</p>
+    <h3>What can it do?</h3><ul><li>Answer questions and explain topics step by step</li><li>Write and fix code, emails, resumes and cover letters</li><li>Read and describe your photos (upload or use the camera)</li><li>Create images</li><li>Search the web with sources</li><li>Voice input, Hindi and other Indian languages</li><li>Modes: Study Focus, Code Helper, Artist, Writer</li></ul>
+    <h3>What does it cost?</h3><p>Free (100 messages and 3 images a day), Pro ($5.99/month) and Elite ($10.99/month). Tap Upgrade to compare.</p>
     <p><small>Contact: ${'${EMAIL}'}</small></p>`],
   privacy: ['Privacy Policy', `<p><small>Last updated: 28 October 2026</small></p>
     <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages and images you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li></ul>
@@ -483,7 +483,7 @@ async function handleFail(e, body) {
   if (e.code === 'auth') { await sb.auth.signOut(); return; }
   if (e.code === 'guest_limit') {
     showErr(body, e.message, ['Sign up free', () => showAuth('signup')]);
-    dialog({ title: 'Free trial finished', text: 'Sign up free to keep chatting. You get 100 messages and 10 images every day.', ok: 'Sign up free', cancel: 'Maybe later' }).then(v => { if (v) showAuth('signup'); });
+    dialog({ title: 'Free trial finished', text: 'Sign up free to keep chatting. You get 100 messages and 3 images every day.', ok: 'Sign up free', cancel: 'Maybe later' }).then(v => { if (v) showAuth('signup'); });
     return;
   }
   showErr(body, e.message, e.code === 'limit' ? ['⚡ See plans', openUpgrade] : null);
