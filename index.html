@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<script>try{if(!location.search&&!location.hash&&!localStorage.getItem('perses_seen')&&!localStorage.getItem('perses_theme')){location.replace('landing.html')}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Perses — Your AI for Help</title>
 <link rel="icon" href="https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png">
@@ -18,7 +19,7 @@
 <!-- LOGIN / SIGN UP -->
 <div id="auth" class="screen" hidden>
   <div class="auth-card">
-    <button id="authClose" class="link back" type="button">← Back to Perses</button>
+    <button id="authClose" class="link back" type="button">&larr; Back to Perses</button>
     <img class="logo-lg" data-logo alt="Perses">
     <h2 id="authTitle">Welcome back</h2>
     <button id="googleBtn" class="gbtn" type="button"><b class="g">G</b> Continue with Google</button>
@@ -34,7 +35,7 @@
     </form>
     <button id="forgot" class="link" type="button">Forgot password?</button>
     <p id="authMsg" class="amsg"></p>
-    <div class="legal"><button data-info="about">About</button> · <button data-info="privacy">Privacy</button> · <button data-info="terms">Terms</button></div>
+    <div class="legal"><button data-info="about">About</button> &middot; <button data-info="privacy">Privacy</button> &middot; <button data-info="terms">Terms</button></div>
   </div>
 </div>
 
@@ -42,15 +43,15 @@
 <div id="nameScreen" class="screen" hidden>
   <div class="auth-card left">
     <img class="logo-lg" data-logo alt="Perses">
-    <h2>Let's set you up ✨</h2>
+    <h2>Let's set you up</h2>
     <p class="hint">Email verified. Tell us a little about you.</p>
     <form id="nameForm">
-      <label class="lbl" for="uname">Username <small>(unique, 3–20 letters, numbers or _)</small></label>
+      <label class="lbl" for="uname">Username <small>(unique, 3-20 letters, numbers or _)</small></label>
       <input id="uname" class="field" placeholder="e.g. anuj_01" required minlength="3" maxlength="20" autocomplete="username">
       <div id="unameHint" class="uhint"></div>
       <label class="lbl" for="dname">Your name <small>(Perses will call you this)</small></label>
       <input id="dname" class="field" placeholder="e.g. Anuj" required maxlength="40" autocomplete="given-name">
-      <label class="lbl" for="bday">Your birthday <small>(just for fun 🎂)</small></label>
+      <label class="lbl" for="bday">Your birthday <small>(just for fun)</small></label>
       <input id="bday" class="field" type="date" required>
       <button class="primary" type="submit">Continue</button>
     </form>
@@ -77,40 +78,40 @@
   <div class="sharewrap">
     <div class="sharebar"><img data-logo alt=""><b>Perses</b><button id="shareOpen" class="btn pri">Open Perses</button></div>
     <h1 id="shareTitle"></h1>
-    <div class="sharemeta">Shared chat · read-only</div>
+    <div class="sharemeta">Shared chat &middot; read-only</div>
     <div id="shareBody"></div>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app" hidden>
+<!-- APP (visible from the start, so the page is never blank) -->
+<div id="app">
   <div id="overlay"></div>
   <aside id="sidebar">
     <div class="side-top">
       <div class="brand"><img data-logo alt=""><span>Perses</span></div>
       <button id="newChat" class="icon-btn" title="New chat" aria-label="New chat">+</button>
-      <button id="closeSide" class="icon-btn only-mobile" aria-label="Close menu">✕</button>
+      <button id="closeSide" class="icon-btn only-mobile" aria-label="Close menu">&#10005;</button>
     </div>
 
     <div id="sideScroll">
       <div class="side-label">MODES</div>
       <div id="modes" class="modes"></div>
-      <div class="sec-head"><span class="side-label">PROJECTS</span><button id="newProject" class="mini-plus" title="New project" aria-label="New project">＋</button></div>
+      <div class="sec-head"><span class="side-label">PROJECTS</span><button id="newProject" class="mini-plus" title="New project" aria-label="New project">+</button></div>
       <div id="projects"></div>
       <div class="side-label">RECENT CHATS</div>
-      <input id="chatSearch" class="search" placeholder="Search chats…" autocomplete="off">
+      <input id="chatSearch" class="search" placeholder="Search chats..." autocomplete="off">
       <nav id="history"></nav>
     </div>
 
     <div class="side-foot">
       <div id="usage" class="usage"></div>
-      <button id="galleryBtn" class="sidebtn">🖼️ Image gallery</button>
-      <button id="upgradeSide" class="upgrade no-guest">⚡ Upgrade</button>
+      <button id="galleryBtn" class="sidebtn">Image gallery</button>
+      <button id="upgradeSide" class="upgrade no-guest">Upgrade</button>
       <button id="loginSide" class="upgrade only-guest">Log in / Sign up free</button>
       <button id="userBtn" class="usercard no-guest">
         <span class="ava" id="uAva">P</span>
         <span class="uinfo"><b id="uName"></b><small id="uPlan"></small></span>
-        <span class="dots">⋯</span>
+        <span class="dots">&middot;&middot;&middot;</span>
       </button>
       <div class="status"><span class="dot"></span> PERSES ENGINE ONLINE</div>
     </div>
@@ -119,10 +120,10 @@
   <main id="main">
     <canvas id="fx"></canvas>
     <header id="topbar">
-      <button id="menuBtn" class="icon-btn only-mobile" aria-label="Open menu">☰</button>
+      <button id="menuBtn" class="icon-btn only-mobile" aria-label="Open menu">&#9776;</button>
       <div class="spacer"></div>
-      <button id="themeBtn" class="icon-btn" title="Dark / light mode" aria-label="Switch theme">☀️</button>
-      <button id="upgradeTop" class="upgrade small no-guest">⚡ Upgrade</button>
+      <button id="themeBtn" class="btn" title="Dark / light mode">Light mode</button>
+      <button id="upgradeTop" class="upgrade small no-guest">Upgrade</button>
       <button id="loginTop" class="upgrade small only-guest">Log in</button>
     </header>
 
@@ -135,12 +136,12 @@
         <h1>Welcome To Perses</h1>
         <p class="sub" id="wHello">Your AI for Help</p>
         <div class="cards">
-          <button class="card" data-p="Help me write a professional cover letter. Ask me for the job and my experience."><span>📄</span>Write a cover letter</button>
-          <button class="card" data-p="Explain how the internet works like I'm 10 years old."><span>🧒</span>Explain like I'm 10</button>
-          <button class="card" data-p="/math Solve 2x^2 - 5x + 2 = 0 step by step"><span>🧮</span>Solve a math problem</button>
-          <button class="card" data-p="/image a cozy mountain cabin at sunrise, glowing windows, misty valley, cinematic"><span>🎨</span>Create an image</button>
+          <button class="card" data-p="Help me write a professional cover letter. Ask me for the job and my experience."><em class="tg">Write</em>Write a cover letter</button>
+          <button class="card" data-p="Explain how the internet works like I'm 10 years old."><em class="tg">Learn</em>Explain like I'm 10</button>
+          <button class="card" data-p="/math Solve 2x^2 - 5x + 2 = 0 step by step"><em class="tg">Math</em>Solve a math problem</button>
+          <button class="card" data-p="/image a cozy mountain cabin at sunrise, glowing windows, misty valley, cinematic"><em class="tg">Image</em>Create an image</button>
         </div>
-        <button id="moreTpl" class="link">More prompt templates →</button>
+        <button id="moreTpl" class="link">More prompt templates &rarr;</button>
       </div>
       <div id="messages"></div>
     </section>
@@ -163,7 +164,7 @@
           <svg id="stopIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
         </button>
       </div>
-      <div class="disc">Perses can make mistakes. Check important info. <button class="link" data-info="privacy">Privacy</button> · <button class="link" data-info="terms">Terms</button></div>
+      <div class="disc">Perses can make mistakes. Check important info. <button class="link" data-info="privacy">Privacy</button> &middot; <button class="link" data-info="terms">Terms</button></div>
     </footer>
   </main>
   <input type="file" id="bgFile" accept="image/*" hidden>
@@ -173,7 +174,7 @@
 <!-- UPGRADE -->
 <div id="upgradeModal" class="modal" hidden>
   <div class="sheet wide">
-    <button class="x" data-close="upgradeModal" aria-label="Close">✕</button>
+    <button class="x" data-close="upgradeModal" aria-label="Close">&#10005;</button>
     <h2>Choose your Perses</h2>
     <p class="hint center">Pick the plan that fits you. Upgrade or change any time.</p>
     <div id="plansBox" class="plans"></div>
@@ -183,7 +184,7 @@
 <!-- SETTINGS -->
 <div id="settingsModal" class="modal" hidden>
   <div class="sheet">
-    <button class="x" data-close="settingsModal" aria-label="Close">✕</button>
+    <button class="x" data-close="settingsModal" aria-label="Close">&#10005;</button>
     <h2>Settings</h2>
     <div class="avrow">
       <span id="sAvatar" class="ava big">P</span>
@@ -209,7 +210,7 @@
 <!-- TEMPLATES -->
 <div id="templatesModal" class="modal" hidden>
   <div class="sheet wide">
-    <button class="x" data-close="templatesModal" aria-label="Close">✕</button>
+    <button class="x" data-close="templatesModal" aria-label="Close">&#10005;</button>
     <h2>Prompt templates</h2>
     <p class="hint center">Tap one, fill in the [brackets], and send.</p>
     <div id="tplBox" class="tpls"></div>
@@ -219,7 +220,7 @@
 <!-- GALLERY -->
 <div id="galleryModal" class="modal" hidden>
   <div class="sheet wide">
-    <button class="x" data-close="galleryModal" aria-label="Close">✕</button>
+    <button class="x" data-close="galleryModal" aria-label="Close">&#10005;</button>
     <h2>Image gallery</h2>
     <div id="galleryBox" class="gallery"></div>
   </div>
@@ -228,7 +229,7 @@
 <!-- INFO -->
 <div id="infoModal" class="modal" hidden>
   <div class="sheet">
-    <button class="x" data-close="infoModal" aria-label="Close">✕</button>
+    <button class="x" data-close="infoModal" aria-label="Close">&#10005;</button>
     <h2 id="infoTitle"></h2>
     <div id="infoBody" class="info"></div>
   </div>
@@ -246,7 +247,7 @@
 </div>
 
 <div id="cookie" hidden>
-  <p>🍪 Perses uses only essential cookies and local storage to keep you signed in and remember your settings. No ads, no tracking. <button class="link" data-info="privacy">Learn more</button></p>
+  <p>Perses uses only essential cookies and local storage to keep you signed in and remember your settings. No ads, no tracking. <button class="link" data-info="privacy">Learn more</button></p>
   <button id="cookieOk" class="btn pri">Got it</button>
 </div>
 
