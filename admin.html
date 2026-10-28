@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Perses Admin</title>
+<link rel="icon" href="https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#ff5a00;--bg:#101010;--panel:#1b1b1b;--line:#2c2c2c;--text:#ececec;--dim:#8f8f8f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:18px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+header h1{font-family:'Playfair Display',serif;font-size:26px;flex:1}
+.btn{padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;font:inherit}
+.btn:hover{border-color:var(--accent)}.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.tag{font-size:12px;color:var(--dim)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat small{color:var(--dim);display:block;font-size:12px}.stat b{font-size:26px;font-family:'Playfair Display',serif}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:18px}
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.chart h3{font-size:14px;margin-bottom:8px;color:var(--dim);font-weight:500}
+.chart canvas{max-height:240px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;overflow-x:auto}
+.box h3{margin-bottom:10px}
+.search{display:flex;gap:8px;margin-bottom:10px}
+input,select{background:#111;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit}
+.search input{flex:1}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+.pl{display:inline-block;padding:1px 10px;border-radius:99px;font-size:12px;border:1px solid var(--line)}
+.pl.pro{border-color:var(--accent);color:var(--accent)}.pl.elite{border-color:#d4a73a;color:#d4a73a}
+td input{width:70px}
+#msg{padding:40px 10px;text-align:center;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Perses Admin</h1><span class="tag" id="who"></span>
+    <button class="btn" id="refresh">Refresh</button><a class="btn" href="index.html">Back to Perses</a>
+  </header>
+  <div id="msg">Loading...</div>
+  <div id="main" hidden>
+    <div class="cards" id="stats"></div>
+    <div class="charts">
+      <div class="chart"><h3>New sign-ups (last 30 days)</h3><canvas id="c1"></canvas></div>
+      <div class="chart"><h3>Messages per day</h3><canvas id="c2"></canvas></div>
+      <div class="chart"><h3>Images per day</h3><canvas id="c3"></canvas></div>
+      <div class="chart"><h3>Active users per day</h3><canvas id="c4"></canvas></div>
+      <div class="chart"><h3>Plans</h3><canvas id="c5"></canvas></div>
+      <div class="chart"><h3>Feedback</h3><canvas id="c6"></canvas></div>
+    </div>
+    <div class="box">
+      <h3>Users <span class="tag" id="ownerNote"></span></h3>
+      <div class="search"><input id="q" placeholder="Search by email or username"><button class="btn" id="go">Search</button></div>
+      <table><thead><tr><th>Email</th><th>Username</th><th>Plan</th><th>Expires</th><th>Joined</th><th>Last sign-in</th><th>Msgs today</th><th class="oc">Change plan</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<script>
+var C = window.PERSES_CONFIG, sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+var $ = function (s) { return document.querySelector(s); }, charts = {}, isOwner = false;
+function fmt(d) { return d ? new Date(d).toLocaleDateString() : '-'; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function draw(id, type, labels, sets, opts) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart($('#' + id), { type: type, data: { labels: labels, datasets: sets }, options: Object.assign({ responsive: true, plugins: { legend: { display: sets.length > 1 || type === 'doughnut', labels: { color: '#aaa' } } }, scales: type === 'doughnut' ? {} : { x: { ticks: { color: '#888', maxTicksLimit: 8 }, grid: { display: false } }, y: { ticks: { color: '#888' }, grid: { color: '#262626' }, beginAtZero: true } } }, opts || {}) });
+}
+async function load() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { $('#msg').innerHTML = 'Please log in on the main site first, then open this page again.<br><br><a class="btn pri" href="index.html?auth=login">Go to login</a>'; return; }
+  var email = (s.data.session.user.email || '').toLowerCase();
+  $('#who').textContent = email;
+  var r = await sb.rpc('admin_stats');
+  if (r.error) { $('#msg').textContent = 'No access. This page is only for Perses admins.'; return; }
+  var d = r.data; isOwner = email === (C.OWNER_EMAIL || '').toLowerCase();
+  $('#msg').hidden = true; $('#main').hidden = false;
+  $('#ownerNote').textContent = isOwner ? '(you are the owner: you can change plans)' : '(view only)';
+  document.querySelectorAll('.oc').forEach(function (e) { e.style.display = isOwner ? '' : 'none'; });
+  var P = d.plans || {};
+  var cards = [['Total users', d.users_total], ['New today', d.users_today], ['New (7 days)', d.users_7d], ['New (30 days)', d.users_30d], ['Active today', d.active_today], ['Messages today', d.msgs_today], ['Images today', d.imgs_today], ['Guest messages today', d.guest_msgs_today], ['Pro users', P.pro || 0], ['Elite users', P.elite || 0], ['Good ratings', d.likes], ['Bad ratings', d.dislikes], ['Shared chats', d.shared_chats]];
+  $('#stats').innerHTML = cards.map(function (c) { return '<div class="stat"><small>' + c[0] + '</small><b>' + (c[1] || 0) + '</b></div>'; }).join('');
+  var days = d.daily.map(function (x) { return x.d.slice(5); });
+  draw('c1', 'bar', d.signups.map(function (x) { return x.d.slice(5); }), [{ label: 'Sign-ups', data: d.signups.map(function (x) { return x.n; }), backgroundColor: '#ff5a00' }]);
+  draw('c2', 'line', days, [{ label: 'Messages', data: d.daily.map(function (x) { return x.msgs; }), borderColor: '#ff9a3c', backgroundColor: 'rgba(255,154,60,.15)', fill: true, tension: .3 }]);
+  draw('c3', 'line', days, [{ label: 'Images', data: d.daily.map(function (x) { return x.imgs; }), borderColor: '#8e4ec6', tension: .3 }]);
+  draw('c4', 'line', days, [{ label: 'Active users', data: d.daily.map(function (x) { return x.users; }), borderColor: '#30a46c', tension: .3 }]);
+  draw('c5', 'doughnut', ['Free', 'Pro', 'Elite'], [{ data: [P.free || 0, P.pro || 0, P.elite || 0], backgroundColor: ['#555', '#ff5a00', '#d4a73a'], borderWidth: 0 }]);
+  draw('c6', 'doughnut', ['Good', 'Bad'], [{ data: [d.likes || 0, d.dislikes || 0], backgroundColor: ['#30a46c', '#e5484d'], borderWidth: 0 }]);
+  users();
+}
+async function users() {
+  var r = await sb.rpc('admin_users', { p_q: $('#q').value.trim() });
+  if (r.error) { $('#rows').innerHTML = '<tr><td colspan="8">' + esc(r.error.message) + '</td></tr>'; return; }
+  $('#rows').innerHTML = (r.data || []).map(function (u) {
+    var edit = isOwner ? '<td><select data-id="' + u.uid + '"><option>free</option><option>pro</option><option>elite</option></select> <input placeholder="days" title="Days (blank = forever)"> <button class="btn" data-apply="' + u.uid + '">Apply</button></td>' : '';
+    return '<tr><td>' + esc(u.email) + '</td><td>' + esc(u.username || '-') + '</td><td><span class="pl ' + esc(u.plan) + '">' + esc(u.plan || 'free') + '</span></td><td>' + fmt(u.plan_expires) + '</td><td>' + fmt(u.created_at) + '</td><td>' + fmt(u.last_sign_in_at) + '</td><td>' + u.msgs_today + '</td>' + edit + '</tr>';
+  }).join('') || '<tr><td colspan="8">No users found.</td></tr>';
+  document.querySelectorAll('select[data-id]').forEach(function (sel, i) { var u = r.data[i]; sel.value = u.plan || 'free'; });
+}
+$('#rows').addEventListener('click', async function (e) {
+  var id = e.target.getAttribute('data-apply'); if (!id) return;
+  var row = e.target.closest('tr'), plan = row.querySelector('select').value, days = parseInt(row.querySelector('input').value, 10) || null;
+  var r = await sb.rpc('admin_set_plan', { p_user: id, p_plan: plan, p_days: days });
+  if (r.error) alert('Could not change plan: ' + r.error.message); else { alert('Plan updated'); users(); load(); }
+});
+$('#go').onclick = users; $('#q').onkeydown = function (e) { if (e.key === 'Enter') users(); };
+$('#refresh').onclick = load;
+load();
+</script>
+</body>
+</html>
