@@ -152,4 +152,24 @@ footer a:hover{color:var(--text)}
 <section id="faq"><div class="wrap" style="max-width:760px">
   <h2>Questions</h2><p class="sub">Quick answers.</p>
   <details><summary>Who made Perses?</summary><p>Perses was created by its founder, Anuj Jha, and was established on 26 October 2026.</p></details>
-  <details><summary>Is it really free?</summary><p>Yes. The Free plan gives you 100 messages and 3 images every day. You can even try
+  <details><summary>Is it really free?</summary><p>Yes. The Free plan gives you 100 messages and 3 images every day. You can even try 10 messages as a guest without signing up.</p></details>
+  <details><summary>Who can use Perses?</summary><p>Anyone aged 7 and over. Children under 13 should use it together with a parent or guardian. Perses switches to kid-safe or teen-safe mode automatically based on the birthday you enter.</p></details>
+  <details><summary>Are my chats private?</summary><p>Your chat history is stored on your own device unless you turn on cloud sync. Messages are sent to our servers and AI providers only to create replies. We do not sell your data.</p></details>
+  <details><summary>Which languages does it support?</summary><p>Perses understands and replies in any language you write in. Voice input works in many languages, and you can pick yours in the + menu.</p></details>
+  <details><summary>Which files can it read?</summary><p>PDF, Word (.docx), Excel (.xlsx) and text files. Scanned PDFs without text are not supported.</p></details>
+  <details><summary>How do I delete my account?</summary><p>Open Settings and choose Delete account. We ask twice and email you a code to confirm.</p></details>
+</div></section>
+
+<footer><div class="wrap">
+  <a class="brand" href="#top" style="font-size:18px"><img src="https://i.ibb.co/BVj29ptv/AI-logo.png" alt="" style="width:28px;height:28px">Perses</a>
+  <a href="index.html#about">About</a><a href="index.html#guide">Guide</a><a href="index.html#legal">Privacy &amp; Terms</a><a href="status.html">Status</a>
+  <span class="r">Made by Anuj Jha</span>
+</div></footer>
+
+<script>
+document.querySelectorAll('.try').forEach(function(el){el.onclick=function(){navigator.clipboard.writeText(el.dataset.c);var o=el.textContent;el.textContent='Copied';setTimeout(function(){el.textContent=o},1200)}});
+document.getElementById('seg').onclick=function(e){var b=e.target.closest('button');if(!b)return;document.querySelectorAll('#seg button').forEach(function(x){x.classList.toggle('on',x===b)});
+document.querySelectorAll('.price[data-m]').forEach(function(p){var m=parseFloat(p.dataset.m);if(b.dataset.p==='y'){var y=(m*12*0.9).toFixed(2);p.innerHTML='$'+y+'<small> / year (save 10%)</small>'}else{p.innerHTML='$'+m.toFixed(2)+'<small> / month</small>'}})};
+</script>
+</body>
+</html>
