@@ -48,6 +48,9 @@ const TAGS = {
   summarize: { mode: 'default', tpl: t => t ? `Summarize the following in clear bullet points, then give a one-line takeaway:\n\n${t}` : 'Summarize the document I shared (if there is none, ask me to paste the text or attach a file): key points first, then a one-line takeaway.', optional: true }
 };
 const TAG_LIST = [['image', 'Create a picture'], ['prompt', 'Write a ready-to-use AI prompt'], ['code', 'Write or fix code'], ['write', 'Polished writing'], ['math', 'Solve step by step'], ['summarize', 'Summarize text or a document']];
+
+const SEC = 'border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0';
+const SUM = 'cursor:pointer;font-weight:600;font-size:16px';
 const INFO = {
   about: ['About Perses', `<p><b>Perses - Your AI for Help.</b> Chat, learn, write, code, solve math, read documents, understand images, create images, and talk to it in English, Hindi and more.</p>
     <h3>Who made it?</h3><p>Perses was created by its founder, <b>Anuj Jha</b>, and was established on <b>26 October 2026</b>.</p>
@@ -61,14 +64,15 @@ const INFO = {
     <h3>Code boxes</h3><p>Every code box has a Copy button. JavaScript and Python boxes have Run, and HTML boxes have Preview.</p>
     <h3>Organize</h3><p>Use the three dots on a chat to pin, rename, move to a project, share a link or export. On any answer, tap Branch to start a new chat from that point.</p>
     <h3>Memory</h3><p>Say "remember that I prefer short answers" and Perses will keep it. Automatic memory can also learn your preferences. Edit or turn it off in Settings.</p>`],
-  privacy: ['Privacy Policy', `<p><small>Last updated: 28 October 2026</small></p>
-    <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages, images and documents you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li><li>A short memory of your preferences (you control it in Settings)</li><li>Chats you choose to share by link (text only), stored until you stop sharing</li></ul>
-    <h3>How it is used</h3><p>Your messages and documents are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history, projects and folders are stored in your own browser. We do not sell your personal data.</p>
-    <h3>Your choices</h3><p>You can edit your details in Settings, turn off automatic memory, delete chats any time, and delete your whole account from Settings (we email you a code to confirm). Questions: \${EMAIL}</p>
-    <h3>Age</h3><p>Perses is for people aged 13 and over.</p>`],
-  terms: ['Terms of Use', `<p><small>Last updated: 28 October 2026</small></p>
-    <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Code you run from a Run button executes in a sandbox on your device. Review code before running it.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout. The free Pro trial is one per account.</li><li>You are responsible for the content you submit and for chats you share by link.</li><li>The service is provided "as is" without guarantees.</li></ul>
-    <p>Questions: \${EMAIL}</p>`]
+  legal: ['Privacy & Terms', `<p><small>Last updated: 28 October 2026. Tap a section to open it.</small></p>
+    <details open style="${SEC}"><summary style="${SUM}">Privacy Policy</summary>
+      <h3>What we collect</h3><ul><li>Account details: email, username, your name, birthday, optional profile photo</li><li>The messages, images and documents you send, so Perses can reply</li><li>Usage counts (to apply daily limits) and thumbs up/down ratings</li><li>A short memory of your preferences (you control it in Settings)</li><li>Chats you choose to share by link (text only), stored until you stop sharing</li></ul>
+      <h3>How it is used</h3><p>Your messages and documents are sent to our servers and to third-party AI service providers only to create replies and images. Your chat history, projects and folders are stored in your own browser. We do not sell your personal data.</p>
+      <h3>Your choices</h3><p>You can edit your details in Settings, turn off automatic memory, delete chats any time, and delete your whole account from Settings (we email you a code to confirm). Questions: \${EMAIL}</p>
+      <h3>Age</h3><p>Perses is for people aged 13 and over.</p></details>
+    <details style="${SEC}"><summary style="${SUM}">Terms of Use</summary>
+      <ul><li>Use Perses lawfully. Do not use it to harm, harass, deceive or break the law.</li><li>AI can be wrong. Check important information, and do not rely on Perses for medical, legal or financial decisions.</li><li>Code you run from a Run button executes in a sandbox on your device. Review code before running it.</li><li>Daily limits apply to each plan. We may change features, limits and prices, and may suspend accounts that abuse the service.</li><li>Paid plans renew until cancelled. Refund rules will be shown at checkout. The free Pro trial is one per account.</li><li>You are responsible for the content you submit and for chats you share by link.</li><li>The service is provided "as is" without guarantees.</li></ul>
+      <p>Questions: \${EMAIL}</p></details>`]
 };
 /* ================================================================== */
 
@@ -193,7 +197,11 @@ document.addEventListener('click', () => { $('#rowMenu').hidden = true; });
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => close(b.dataset.close));
 document.querySelectorAll('.modal:not(#dlg)').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.hidden = true; }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal:not(#dlg)').forEach(m => { m.hidden = true; }); });
-function openInfo(k) { $('#infoTitle').textContent = INFO[k][0]; $('#infoBody').innerHTML = INFO[k][1].replaceAll('${EMAIL}', esc(CONFIG.CONTACT_EMAIL)); open('infoModal'); }
+function openInfo(k) {
+  if (k === 'privacy' || k === 'terms') k = 'legal';      /* privacy and terms are one page now */
+  if (!INFO[k]) return;
+  $('#infoTitle').textContent = INFO[k][0]; $('#infoBody').innerHTML = INFO[k][1].replaceAll('${EMAIL}', esc(CONFIG.CONTACT_EMAIL)); open('infoModal');
+}
 document.querySelectorAll('[data-info]').forEach(b => b.onclick = () => openInfo(b.dataset.info));
 
 /* cookie notice (sits over the chat) */
@@ -686,16 +694,23 @@ function buildBody(chat, search) {
 }
 async function apiError(r) {
   let e = {}; try { e = await r.json(); } catch {}
-  const err = new Error(e.error || 'Request failed (' + r.status + ')'); err.code = e.code; return err;
+  const err = new Error(e.error || 'Request failed (' + r.status + ')');
+  err.code = e.code; err.detail = e.detail; err.status = r.status; return err;
 }
-async function handleFail(e, body) {
+async function handleFail(e, body, chat) {
   if (e.code === 'auth') { await sb.auth.signOut(); return; }
   if (e.code === 'guest_limit') {
     showErr(body, e.message, ['Sign up free', () => showAuth('signup')]);
     dialog({ title: 'Free trial finished', text: 'Sign up free to keep chatting. You get 100 messages and 3 images every day.', ok: 'Sign up free', cancel: 'Maybe later' }).then(v => { if (v) showAuth('signup'); });
     return;
   }
-  showErr(body, e.message, e.code === 'limit' ? ['See plans', openUpgrade] : null);
+  let text = e.message;
+  if (e.detail) {                                   /* technical details are only shown to admins */
+    console.warn('Perses engine details:', e.detail);
+    if (user && CONFIG.ADMINS.includes((user.email || '').toLowerCase())) text += '   [admin only] ' + e.detail;
+  }
+  const retry = e.code === 'busy' && chat ? ['Try again', () => regenerate(chat.messages.length)] : null;
+  showErr(body, text, e.code === 'limit' ? ['See plans', openUpgrade] : retry);
 }
 async function streamReply(chat, search) {
   const msg = { role: 'assistant', content: '' };
@@ -705,7 +720,16 @@ async function streamReply(chat, search) {
   let raf = 0, failed = false;
   const paint = () => { raf = 0; const nb = nearBottom(); ui.body.innerHTML = md(msg.content); enhance(ui.body); if (nb) toBottom(); };
   try {
-    const r = await fetch(CONFIG.API_BASE + '/api/chat', { method: 'POST', headers: await authHeaders(), body: JSON.stringify(buildBody(chat, search)), signal: abortCtl.signal });
+    let r;
+    for (let attempt = 0; ; attempt++) {
+      r = await fetch(CONFIG.API_BASE + '/api/chat', { method: 'POST', headers: await authHeaders(), body: JSON.stringify(buildBody(chat, search)), signal: abortCtl.signal });
+      if (r.status === 503 && attempt < 1) {         /* everything was busy: wait a moment and quietly try once more */
+        ui.body.innerHTML = '<div class="typing"><i></i><i></i><i></i></div> <span style="color:var(--dim)">Perses is busy. Trying again...</span>';
+        await new Promise(res => setTimeout(res, 3000));
+        continue;
+      }
+      break;
+    }
     if (!r.ok) throw await apiError(r);
     const reader = r.body.getReader(), dec = new TextDecoder(); let buf = '';
     for (;;) {
@@ -720,7 +744,7 @@ async function streamReply(chat, search) {
     }
     if (!msg.content) msg.content = '_No response received. Please try again._';
   } catch (e) {
-    if (e.name !== 'AbortError') { await handleFail(e, ui.body); failed = !msg.content; }
+    if (e.name !== 'AbortError') { await handleFail(e, ui.body, chat); failed = !msg.content; }
   }
   cancelAnimationFrame(raf); setBusy(false);
   if (failed) { ui.bub.querySelector('.actions')?.remove(); return; }
@@ -993,7 +1017,8 @@ $('#userBtn').onclick = e => {
     ['Remove background', () => { localStorage.removeItem(BGK()); applyBg(); toast('Background removed'); }],
     ['Switch theme', toggleTheme],
     ['Guide', () => openInfo('guide')],
-    ['About', () => openInfo('about')], ['Privacy', () => openInfo('privacy')], ['Terms', () => openInfo('terms')],
+    ['About', () => openInfo('about')],
+    ['Privacy & Terms', () => openInfo('legal')],
     ...extra,
     ['Log out', () => sb.auth.signOut()]
   ], true);
@@ -1070,7 +1095,7 @@ $('#galleryBox').addEventListener('click', e => {
 startGuest();   /* show the chat right away; the login check below may switch to your account */
 const AUTHQ = new URLSearchParams(location.search).get('auth');
 if (AUTHQ === 'login' || AUTHQ === 'signup') showAuth(AUTHQ);
-if (['#privacy', '#terms', '#about', '#guide'].includes(location.hash)) openInfo(location.hash.slice(1));
+if (['#privacy', '#terms', '#legal', '#about', '#guide'].includes(location.hash)) openInfo(location.hash.slice(1));
 if (SHARE_ID) loadShared(SHARE_ID);
 
 /* extra feature files. Missing files are simply skipped. */
