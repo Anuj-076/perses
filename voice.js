@@ -1,11 +1,11 @@
-/* Perses voice: hands-free conversation and the most natural browser voice available */
+/* Perses voice: hands-free conversation and the most natural browser voice available (works for every language) */
 (() => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let on = false, rec = null, ui = null, lastReply = '', token = 0;
-  const vlang = () => localStorage.getItem('perses_vlang') || 'en-IN';
+  const vlang = () => localStorage.getItem('perses_vlang') || navigator.language || 'en-US';
   const rate = () => +(localStorage.getItem('perses_rate') || 1);
 
-  const SCRIPTS = [[/[\u0900-\u097F]/, 'hi-IN'], [/[\u0980-\u09FF]/, 'bn-IN'], [/[\u0B80-\u0BFF]/, 'ta-IN'], [/[\u0C00-\u0C7F]/, 'te-IN'], [/[\u0A80-\u0AFF]/, 'gu-IN'], [/[\u0A00-\u0A7F]/, 'pa-IN'], [/[\u0C80-\u0CFF]/, 'kn-IN'], [/[\u0D00-\u0D7F]/, 'ml-IN'], [/[\u0600-\u06FF]/, 'ur-IN']];
+  const SCRIPTS = [[/[\u0400-\u04FF]/, 'ru-RU'], [/[\u0600-\u06FF]/, 'ar-SA'], [/[\u0590-\u05FF]/, 'he-IL'], [/[\u0370-\u03FF]/, 'el-GR'], [/[\u0E00-\u0E7F]/, 'th-TH'], [/[\u3040-\u30FF]/, 'ja-JP'], [/[\uAC00-\uD7AF]/, 'ko-KR'], [/[\u4E00-\u9FFF]/, 'zh-CN']];
   const langOf = t => { for (const [re, l] of SCRIPTS) if (re.test(t)) return l; return vlang(); };
   const norm = l => String(l || '').toLowerCase().replace('_', '-');
 
@@ -25,7 +25,7 @@
     if (!('speechSynthesis' in window)) { done && done(); return; }
     speechSynthesis.cancel();
     const lang = langOf(text), voice = pick(lang);
-    const parts = clean(text).match(/[^.!?\u0964\n]+[.!?\u0964]*/g) || [];
+    const parts = clean(text).match(/[^.!?\u3002\n]+[.!?\u3002]*/g) || [];
     if (!parts.length) { done && done(); return; }
     parts.forEach((p, i) => {
       const u = new SpeechSynthesisUtterance(p.trim()); u.lang = lang; u.rate = rate(); if (voice) u.voice = voice;
@@ -95,10 +95,5 @@
   Perses.attach.push(() => ['Voice chat (talk back and forth)', start]);
   Perses.attach.push(() => ['Choose speaking voice', () => voiceMenu($('#attachBtn'))]);
   Perses.attach.push(() => ['Speaking speed', () => speedMenu($('#attachBtn'))]);
-  Perses.onStart(() => {
-    if ($('#voiceBtn')) return;
-    const b = document.createElement('button'); b.id = 'voiceBtn'; b.className = 'btn'; b.textContent = 'Voice chat'; b.onclick = start;
-    $('#themeBtn').before(b);
-  });
   if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
 })();
