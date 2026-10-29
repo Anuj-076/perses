@@ -55,7 +55,7 @@ export default async function handler(req) {
     clearTimeout(t);
     if (text) {
       const ok = await consume(a, 'msgs'); if (ok !== true) return usageFail(ok);
-      logAi([{ ...lg, kind: 'search', eng: 'gemini', model: 'search', ok: true, ms: Date.now() - t0 }]);
+      await logAi([{ ...lg, kind: 'search', eng: 'gemini', model: 'search', ok: true, ms: Date.now() - t0 }]);
       return new Response(sseOf(text), { headers: sse });
     }
   }
@@ -69,7 +69,7 @@ export default async function handler(req) {
       const r = await rest(`ai_cache?h=eq.${ckey}&select=answer,ts`); const row = r.ok ? (await r.json())[0] : null;
       if (row && Date.now() - new Date(row.ts) < 259200000) {
         const ok = await consume(a, 'msgs'); if (ok !== true) return usageFail(ok);
-        logAi([{ ...lg, kind: 'chat', eng: 'cache', model: 'cache', ok: true, ms: Date.now() - t0 }]);
+        await logAi([{ ...lg, kind: 'chat', eng: 'cache', model: 'cache', ok: true, ms: Date.now() - t0 }]);
         return new Response(sseOf(row.answer), { headers: sse });
       }
     } catch {}
@@ -84,7 +84,7 @@ export default async function handler(req) {
     return json({ error: 'Perses is very busy right now. Please try again in a moment.', detail: out.fails.map(f => `${f.m.id}: ${f.why}`).join(' | ').slice(0, 700), code: 'busy' }, 503, h);
   }
   const ok = await consume(a, 'msgs'); if (ok !== true) return usageFail(ok, out.res);
-  logAi([...failRows, { ...lg, kind: 'chat', eng: out.model.p, model: out.model.id, ok: true, ms: Date.now() - t0 }]);
+  await logAi([...failRows, { ...lg, kind: 'chat', eng: out.model.p, model: out.model.id, ok: true, ms: Date.now() - t0 }]);
   const stream = tee(out.res.body, text => {
     if (cacheable && ckey && text.length > 20 && text.length < 6000) rest('ai_cache?on_conflict=h', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ h: ckey, answer: text, ts: new Date().toISOString() }) }).catch(() => {});
   });
