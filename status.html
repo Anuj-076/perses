@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Perses Status</title>
+<link rel="icon" href="https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0f0f10;color:#ececec;font:15px/1.6 Inter,system-ui,sans-serif}.w{max-width:760px;margin:0 auto;padding:28px 18px}
+h1{font-family:'Playfair Display',serif;font-size:32px}.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}.top img{width:38px;height:38px;border-radius:50%}
+.ban{padding:16px 18px;border-radius:14px;font-weight:600;margin-bottom:20px;border:1px solid #2d2d31;background:#1a1a1c}.ban.ok{border-color:#30a46c;color:#4cc38a}.ban.warn{border-color:#d4a73a;color:#f0c35a}.ban.bad{border-color:#e5484d;color:#ff6b6b}
+.p{background:#1a1a1c;border:1px solid #2d2d31;border-radius:14px;padding:16px;margin-bottom:12px}.p h3{display:flex;justify-content:space-between;font-size:16px;margin-bottom:10px}.p h3 span{font-size:13px;font-weight:600}
+.bars{display:flex;gap:3px;height:30px}.bars i{flex:1;border-radius:3px;background:#2d2d31}small{color:#8f8f96;display:block;margin-top:8px}
+</style></head><body><div class="w"><div class="top"><img src="https://i.ibb.co/BVj29ptv/AI-logo.png" alt=""><h1>Perses Status</h1></div><div id="ban" class="ban">Checking...</div><div id="parts"></div><small>Updates automatically. Based on real requests from the last 24 hours.</small></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script>
+<script>
+var C=window.PERSES_CONFIG,sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY);
+var col=function(p){return p==null?'#2d2d31':p>=95?'#30a46c':p>=70?'#d4a73a':'#e5484d'};
+async function load(){var r=await sb.rpc('public_status'),d=r.data;if(!d){document.getElementById('ban').textContent='Status is unavailable right now.';return}
+var worst=100,html='';(d.parts||[]).forEach(function(p){var now=p.now;if(now!=null&&now<worst)worst=now;var by={};(p.hours||[]).forEach(function(h){by[new Date(h.h).getHours()+'_'+new Date(h.h).toDateString()]=h.pct});
+var bars='';for(var i=23;i>=0;i--){var t=new Date(Date.now()-i*36e5),k=t.getHours()+'_'+t.toDateString();bars+='<i title="'+t.getHours()+':00" style="background:'+col(by[k])+'"></i>'}
+var lab=now==null?'No recent activity':now>=95?'Operational':now>=70?'Degraded':'Major issues';
+html+='<div class="p"><h3>'+p.name+'<span style="color:'+col(now)+'">'+lab+'</span></h3><div class="bars">'+bars+'</div></div>'});
+document.getElementById('parts').innerHTML=html;var b=document.getElementById('ban'),m=d.maintenance&&d.maintenance.on;
+if(m){b.className='ban warn';b.textContent=d.maintenance.message||'Perses is under maintenance.'}else if(worst>=95){b.className='ban ok';b.textContent='All systems operational'}else if(worst>=70){b.className='ban warn';b.textContent='Some services are slow or degraded'}else{b.className='ban bad';b.textContent='We are experiencing problems'}}
+load();setInterval(load,60000);
+</script></body></html>
