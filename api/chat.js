@@ -1,28 +1,113 @@
 import { cors, json, blocked, authenticate, consume, limitResponse, buildSystem } from './_lib.js';
 export const config = { runtime: 'edge' };
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+/* ---------- providers: separate companies, so they are rarely down together ---------- */
+const PROV = {
+  groq:   { url: () => 'https://api.groq.com/openai/v1/chat/completions', key: () => process.env.GROQ_API_KEY },
+  gemini: { url: () => 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: () => process.env.GEMINI_API_KEY },
+  cf:     { url: () => `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/v1/chat/completions`, key: () => (process.env.CF_ACCOUNT_ID ? process.env.CF_API_TOKEN : '') },
+  or:     { url: () => 'https://openrouter.ai/api/v1/chat/completions', key: () => process.env.OPENROUTER_API_KEY }
+};
 
+/* ---------- models (v:1 = can read images). If a name stops working, change it here. ---------- */
 const M = {
-  groq70:  { p: 'groq',   id: 'llama-3.3-70b-versatile' },
-  groqVis: { p: 'groq',   id: 'meta-llama/llama-4-scout-17b-16e-instruct', v: 1 },
+  groq120: { p: 'groq', id: 'openai/gpt-oss-120b', effort: 'low' },
+  groq20:  { p: 'groq', id: 'openai/gpt-oss-20b', effort: 'low' },
+  cf120:   { p: 'cf', id: '@cf/openai/gpt-oss-120b', effort: 'low' },
+  cf20:    { p: 'cf', id: '@cf/openai/gpt-oss-20b', effort: 'low' },
+  cfQwen:  { p: 'cf', id: '@cf/qwen/qwen3.8-27b', v: 1 },
+  cfGlm:   { p: 'cf', id: '@cf/zai-org/glm-4.7-flash' },
   g38:     { p: 'gemini', id: 'gemini-3.8-flash', v: 1, effort: 'low' },
   g38deep: { p: 'gemini', id: 'gemini-3.8-flash', v: 1, effort: 'medium' },
   g35:     { p: 'gemini', id: 'gemini-3.5-flash', v: 1 },
   g35lite: { p: 'gemini', id: 'gemini-3.5-flash-lite', v: 1 },
   g31lite: { p: 'gemini', id: 'gemini-3.1-flash-lite-preview', v: 1 }
 };
-const CHAINS = {
-  free:  [M.groq70, M.groqVis, M.g35lite, M.g31lite],
-  pro:   [M.g38, M.groq70, M.groqVis, M.g35lite],
-  elite: [M.g38deep, M.g35, M.groq70, M.groqVis]
-};
-const PER_MODEL_MS = 9000;
-const TOTAL_MS = 23000;
+// Optional last resort (only used if OPENROUTER_API_KEY is set). Change with the OPENROUTER_MODELS variable.
+const OR_MODELS = (process.env.OPENROUTER_MODELS || 'openai/gpt-oss-120b:free,openai/gpt-oss-20b:free')
+  .split(',').map(s => s.trim()).filter(Boolean).map(id => ({ p: 'or', id }));
 
+// Order = preference. Others start automatically if one is slow or failing.
+const CHAINS = {
+  free:  [M.groq120, M.g35lite, M.cf120, M.groq20, M.g31lite, M.cf20, M.cfQwen, M.cfGlm, ...OR_MODELS],
+  pro:   [M.g38, M.groq120, M.cf120, M.g35lite, M.groq20, M.cf20, M.g31lite, M.cfQwen, M.cfGlm, ...OR_MODELS],
+  elite: [M.g38deep, M.g35, M.groq120, M.cf120, M.g35lite, M.groq20, M.cfQwen, M.cf20, M.g31lite, M.cfGlm, ...OR_MODELS]
+};
+const STAGGER_MS = 3000;   // start the next model if the current one has not answered after this long
+const TOTAL_MS = 23000;
+const TOTAL_LONG_MS = 24000;
+
+const cool = new Map();    // models that just failed are skipped for a short while
 const hasImages = msgs => msgs.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'image_url'));
 const sseOf = t => 'data: ' + JSON.stringify({ choices: [{ delta: { content: t } }] }) + '\n\ndata: [DONE]\n\n';
+
+function prepare(plan, needVision, longCtx) {
+  let list = (CHAINS[plan] || CHAINS.free).filter(m => PROV[m.p].key());
+  if (needVision) list = list.filter(m => m.v);
+  if (longCtx) list = list.filter(m => m.p === 'gemini' || m.p === 'cf');   // big documents need long-context models
+  const now = Date.now();
+  const warm = list.filter(m => !(cool.get(m.p + m.id) > now));
+  list = warm.length ? warm : list;
+  if (plan === 'free' && list.length > 1 && Math.random() < 0.5) [list[0], list[1]] = [list[1], list[0]];   // spread the load
+  return list;
+}
+
+function makeAttempt(system, messages) {
+  return async (m, signal) => {
+    const p = PROV[m.p];
+    const base = { model: m.id, stream: true, messages: [{ role: 'system', content: system }, ...messages] };
+    const bodies = m.effort ? [{ ...base, reasoning_effort: m.effort }, base] : [base];
+    for (const b of bodies) {
+      const r = await fetch(p.url(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + p.key() },
+        body: JSON.stringify(b),
+        signal
+      });
+      if (r.ok) return { ok: true, body: r.body };
+      const t = await r.text();
+      if (r.status === 400 && b.reasoning_effort) continue;      // retry without the reasoning setting
+      return { ok: false, err: r.status + ' ' + t.replace(/\s+/g, ' ').slice(0, 70) };
+    }
+    return { ok: false, err: '400 rejected' };
+  };
+}
+
+// Starts models one after another (every STAGGER_MS), or immediately when one fails. First good answer wins.
+function race(list, attempt, staggerMs, totalMs) {
+  return new Promise(resolve => {
+    const errs = [], ctls = [];
+    let done = false, next = 0, failed = 0, timer = 0, dead = 0;
+    const end = v => { done = true; clearTimeout(timer); clearTimeout(dead); resolve(v); };
+    const fail = (i, why) => {
+      if (done) return;
+      errs.push(`${list[i].id}: ${why}`); failed++;
+      const k = list[i].p + list[i].id;
+      if (/^404/.test(why)) cool.set(k, Date.now() + 600000);
+      else if (/^(429|5\d\d)|slow|network/.test(why)) cool.set(k, Date.now() + 45000);
+      if (next < list.length) launch();
+      else if (failed >= list.length) end({ ok: false, errs });
+    };
+    const launch = () => {
+      if (done || next >= list.length) return;
+      clearTimeout(timer);
+      const i = next++, ctl = new AbortController();
+      ctls[i] = ctl;
+      attempt(list[i], ctl.signal).then(r => {
+        if (done) { try { r.body && r.body.cancel(); } catch {} return; }
+        if (r.ok) { ctls.forEach((c, j) => { if (j !== i) c.abort(); }); end({ ok: true, res: r, model: list[i] }); }
+        else fail(i, r.err);
+      }).catch(e => fail(i, e.name === 'AbortError' ? 'too slow' : 'network error'));
+      timer = setTimeout(launch, staggerMs);
+    };
+    dead = setTimeout(() => {
+      if (done) return;
+      ctls.forEach(c => c.abort());
+      end({ ok: false, errs: errs.concat('timeout') });
+    }, totalMs);
+    launch();
+  });
+}
 
 // Web search through Gemini's built-in Google Search tool. Returns text with sources, or null.
 async function searchReply(system, messages, signal) {
@@ -79,19 +164,18 @@ export default async function handler(req) {
   if (ctx) system += '\n\nEXTRA CONTEXT FROM THE USER (project rules, documents). Use it when relevant:\n' + ctx;
   if (body.voice === true) system += '\n\nVOICE MODE: The user is talking with you out loud. Reply in 1 to 3 short, natural spoken sentences. No markdown, lists, code or emojis.';
 
-  const started = Date.now();
-  const totalMs = longCtx ? 24000 : TOTAL_MS;
-  const perModel = longCtx ? 20000 : PER_MODEL_MS;
   const sseHeaders = { ...h, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' };
-  const usageFail = async (ok, up) => {
-    if (up) { try { await up.body.cancel(); } catch {} }
+  const usageFail = async (ok, res) => {
+    if (res) { try { await res.body.cancel(); } catch {} }
     return ok === false ? limitResponse(a, 'msgs', h) : json({ error: 'Usage service error. Check the Supabase setup (SQL + SUPABASE_SERVICE_KEY).' }, 500, h);
   };
+  const started = Date.now();
+  const totalMs = longCtx ? TOTAL_LONG_MS : TOTAL_MS;
 
   // 1) Web search mode (logged-in users)
   if (body.search === true && !a.guest) {
     const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 13000);
+    const t = setTimeout(() => ctl.abort(), 11000);
     let text = null;
     try { text = await searchReply(system, messages, ctl.signal); } catch {}
     clearTimeout(t);
@@ -102,42 +186,15 @@ export default async function handler(req) {
     }
   }
 
-  // 2) Normal chat with backups
-  let list = CHAINS[a.plan] || CHAINS.free;
-  if (hasImages(messages)) list = list.filter(m => m.v);
-  if (longCtx) list = list.filter(m => m.p === 'gemini');   // big documents need Gemini's long context
-  const errs = [];
+  // 2) Normal chat: several providers, racing, first good answer wins
+  const list = prepare(a.plan, hasImages(messages), longCtx);
+  if (!list.length) return json({ error: 'No AI engine is set up on the server yet.', detail: 'Add GROQ_API_KEY, GEMINI_API_KEY or CF_ACCOUNT_ID + CF_API_TOKEN in Vercel.', code: 'busy' }, 503, h);
 
-  for (const m of list) {
-    const left = totalMs - (Date.now() - started);
-    if (left < 2500) break;
-    const key = m.p === 'groq' ? process.env.GROQ_API_KEY : process.env.GEMINI_API_KEY;
-    if (!key) { errs.push(m.p + ': key missing'); continue; }
-
-    const payload = { model: m.id, stream: true, messages: [{ role: 'system', content: system }, ...messages] };
-    if (m.p === 'gemini' && m.effort) payload.reasoning_effort = m.effort;
-
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), Math.min(perModel, left));
-    try {
-      const up = await fetch(m.p === 'groq' ? GROQ_URL : GEMINI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
-        body: JSON.stringify(payload),
-        signal: ctl.signal
-      });
-      clearTimeout(timer);
-      if (up.ok) {
-        const ok = await consume(a, 'msgs');
-        if (ok !== true) return usageFail(ok, up);
-        return new Response(up.body, { headers: { ...sseHeaders, 'X-Perses-Model': m.id } });
-      }
-      const t = await up.text();
-      errs.push(`${m.id} ${up.status}: ${t.replace(/\s+/g, ' ').slice(0, 80)}`);
-    } catch (e) {
-      clearTimeout(timer);
-      errs.push(`${m.id}: ${e.name === 'AbortError' ? 'too slow' : 'network error'}`);
-    }
+  const out = await race(list, makeAttempt(system, messages), STAGGER_MS, Math.max(6000, totalMs - (Date.now() - started)));
+  if (!out.ok) {
+    return json({ error: 'Perses is very busy right now. Please try again in a moment.', detail: out.errs.join(' | ').slice(0, 700), code: 'busy' }, 503, h);
   }
-  return json({ error: 'Perses is very busy right now. Please try again in a minute. (' + errs.join(' | ').slice(0, 400) + ')' }, 503, h);
+  const ok = await consume(a, 'msgs');
+  if (ok !== true) return usageFail(ok, out.res);
+  return new Response(out.res.body, { headers: sseHeaders });
 }
