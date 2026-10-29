@@ -1,9 +1,10 @@
-/* Perses automatic memory: learns your preferences from chats (you can turn it off in Settings) */
+/* Perses automatic memory + loader for the extra plugin files */
 (() => {
+  ['merge', 'community', 'lab'].forEach(n => { const s = document.createElement('script'); s.src = n + '.js'; s.async = false; s.onerror = () => s.remove(); document.body.append(s); });
+
   const KEY = 'perses_automem';
   const enabled = () => localStorage.getItem(KEY) !== '0';
   let count = 0, running = false;
-
   Perses.afterReply.push(async chat => {
     if (guest || !user || !profile || !enabled() || running) return;
     if (++count % 4 !== 0) return;
@@ -13,14 +14,9 @@
       const r = await fetch(CONFIG.API_BASE + '/api/memory', { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ memory: profile.memory || '', messages: msgs }) });
       if (!r.ok) return;
       const d = await r.json(), m = (d.memory || '').trim().slice(0, 1800);
-      if (m && m !== (profile.memory || '').trim()) {
-        profile.memory = m;
-        await sb.from('profiles').update({ memory: m }).eq('id', user.id);
-        toast('Memory updated');
-      }
+      if (m && m !== (profile.memory || '').trim()) { profile.memory = m; await sb.from('profiles').update({ memory: m }).eq('id', user.id); toast('Memory updated'); }
     } catch {} finally { running = false; }
   });
-
   Perses.onStart(() => {
     if ($('#sAuto')) return;
     const l = document.createElement('label'); l.className = 'chk';
