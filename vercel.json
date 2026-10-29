@@ -1,0 +1,1 @@
+{ "crons": [{ "path": "/api/selftest", "schedule": "0 3 * * *" }] }
