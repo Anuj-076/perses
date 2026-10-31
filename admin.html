@@ -26,7 +26,7 @@ small{color:var(--dim)}
 #nav{background:var(--panel);border-right:1px solid var(--line);padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto}
 .brand{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-weight:700;font-size:19px;margin-bottom:6px}
 .brand img{width:30px;height:30px;border-radius:50%}
-.role{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.role{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;word-break:break-all}
 .ng{font-size:10.5px;letter-spacing:.14em;color:var(--dim);margin:14px 8px 4px}
 #nav .t{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:9px;color:var(--dim);transition:.15s}
 #nav .t:hover{background:var(--p2);color:var(--text)}#nav .t.on{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff}
@@ -34,11 +34,11 @@ small{color:var(--dim)}
 main{padding:18px;min-width:0}
 .top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
 .top h2{font-family:'Playfair Display',serif;font-size:22px;margin-right:auto}
-.btn{padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--panel);transition:.15s}
+.btn{display:inline-block;padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--panel);transition:.15s;text-decoration:none;color:var(--text)}
 .btn:hover{border-color:var(--accent)}.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}.btn.sm{padding:3px 9px;font-size:12px}
 .chip{display:inline-block;padding:1px 9px;border-radius:99px;border:1px solid var(--line);font-size:12px}
-.chip.pro{border-color:var(--accent);color:var(--accent)}.chip.elite{border-color:var(--warn);color:var(--warn)}.chip.ok{border-color:var(--ok);color:var(--ok)}.chip.bad{border-color:var(--bad);color:var(--bad)}
+.chip.vip{border-color:var(--ok);color:var(--ok)}.chip.pro{border-color:var(--accent);color:var(--accent)}.chip.elite{border-color:var(--warn);color:var(--warn)}.chip.ok{border-color:var(--ok);color:var(--ok)}.chip.bad{border-color:var(--bad);color:var(--bad)}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;animation:in .3s ease;min-width:0}
 .cards .card{margin:0}
@@ -103,7 +103,10 @@ tr.rw{cursor:pointer}tr.rw:hover td{background:var(--p2)}
 <script>
 const C = window.PERSES_CONFIG, sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
 const $ = (s, r) => (r || document).querySelector(s), $$ = (s, r) => [...(r || document).querySelectorAll(s)];
-const S = { role: '', email: '', tab: 'live', sub: {}, from: '', to: '', compare: true, charts: {}, set: {}, dash: null, dashKey: '', dashT: 0, sel: new Set(), uf: {}, hrs: 24, notes: [], t: 0, ticket: 0 };
+const PLANS = ['free', 'vip', 'pro', 'elite'];
+const S = { rt: 0, role: '', email: '', tab: 'live', sub: {}, from: '', to: '', compare: true, charts: {}, set: {}, dash: null, dashKey: '', dashT: 0, sel: new Set(), uf: {}, hrs: 24, notes: [], t: 0 };
+/* Every page load gets a ticket number. Only the newest ticket may draw on the screen (this fixes tabs that "sometimes don't open"). */
+const live = T => T === S.rt;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtD = d => d ? new Date(d).toLocaleDateString() : '-', fmtT = d => d ? new Date(d).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
 const iso = d => d.toISOString().slice(0, 10), num = n => (+n || 0).toLocaleString();
@@ -149,36 +152,41 @@ function form(title, fields, ok) {
     $('[data-o]', m).onclick = () => done(Object.fromEntries($$('[data-k]', m).map(i => [i.dataset.k, i.value])));
   });
 }
-const confirmBox = async (t) => (await form(t, [], 'Yes, do it')) !== null;
+const confirmBox = async t => (await form(t, [], 'Yes, do it')) !== null;
 
-/* ---------- tabs ---------- */
+/* ---------- sub-tabs ---------- */
 function subs(tab, list, draw) {
-  const cur = list.some(x => x[0] === S.sub[tab]) ? S.sub[tab] : list[0][0], v = $('#view'); v.innerHTML = `<div class="subs">${list.map(([i, l]) => `<button class="${i === cur ? 'on' : ''}" data-s="${i}">${l}</button>`).join('')}</div><div id="sv"></div>`;
-  $$('.subs button', v).forEach(b => b.onclick = () => { S.sub[tab] = b.dataset.s; render(); }); return draw(cur, $('#sv'));
+  const T = S.rt, cur = list.some(x => x[0] === S.sub[tab]) ? S.sub[tab] : list[0][0], v = $('#view');
+  v.innerHTML = `<div class="subs">${list.map(([i, l]) => `<button class="${i === cur ? 'on' : ''}" data-s="${i}">${l}</button>`).join('')}</div><div id="sv"></div>`;
+  $$('.subs button', v).forEach(b => b.onclick = () => { S.sub[tab] = b.dataset.s; render(); });
+  return draw(cur, $('#sv'), T);
 }
 
 /* LIVE */
-async function vLive() {
-  const d = await rpc('admin_live'), pm = d.per_min || [], tot = pm.reduce((s, x) => s + x.n, 0);
+async function vLive(T) {
+  const d = await rpc('admin_live'); if (!live(T)) return;
+  const pm = d.per_min || [], tot = pm.reduce((s, x) => s + x.n, 0);
   $('#view').innerHTML = `<div class="cards">${card('Online now', d.online, `<em>${d.online_users} signed in</em>`)}${card('Messages, last hour', tot)}${card('This minute', (pm[pm.length - 1] || {}).n || 0)}</div>
   <div class="grid2"><div class="card"><h3>Messages per minute</h3><div class="cv"><canvas id="c_m"></canvas></div></div><div class="card"><h3>Live activity</h3><div class="ticker">${(d.recent || []).map(e => `<div class="tk ${e.t}"><span>${e.t}</span><b>${esc(e.d)}</b><i>${ago(e.ts)}</i></div>`).join('') || '<div class="empty">Quiet right now</div>'}</div></div></div>`;
   chart('c_m', 'bar', pm.map(x => new Date(x.m).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), [{ label: 'Messages', data: pm.map(x => x.n), backgroundColor: '#ff5a00' }]);
 }
 
 /* OVERVIEW */
-async function vOverview() {
-  const d = await dash(), n = nDays(), all = d.daily, cur = all.slice(-n), prev = all.slice(0, all.length - n), sum = (a, k) => a.reduce((s, x) => s + (+x[k] || 0), 0), lab = cur.map(x => x.d.slice(5));
+async function vOverview(T) {
+  const d = await dash(); if (!live(T)) return;
+  const n = nDays(), all = d.daily, cur = all.slice(-n), prev = all.slice(0, all.length - n), sum = (a, k) => a.reduce((s, x) => s + (+x[k] || 0), 0), lab = cur.map(x => x.d.slice(5));
   const ds = (k, col, name) => [{ label: name, data: cur.map(x => x[k]), borderColor: col, backgroundColor: col + '33', fill: true, tension: .3 }, S.compare ? { label: 'Previous period', data: prev.map(x => x[k]), borderColor: '#888', borderDash: [5, 4], tension: .3, pointRadius: 0 } : null];
   $('#view').innerHTML = `<div class="cards">${card('Total users', num(d.users_total))}${card('New users', num(sum(cur, 'signups')), S.compare ? delta(sum(cur, 'signups'), sum(prev, 'signups')) : '')}${card('Paid users', num(d.paid))}${card('Active today / week / month', `${num(d.dau)} / ${num(d.wau)} / ${num(d.mau)}`)}${card('Messages', num(sum(cur, 'msgs')), S.compare ? delta(sum(cur, 'msgs'), sum(prev, 'msgs')) : '')}${card('Images', num(sum(cur, 'imgs')), S.compare ? delta(sum(cur, 'imgs'), sum(prev, 'imgs')) : '')}${card('All-engines-busy events', num(d.busy))}</div>
   <div class="grid2"><div class="card"><h3>New sign-ups</h3><div class="cv"><canvas id="o1"></canvas></div></div><div class="card"><h3>Messages</h3><div class="cv"><canvas id="o2"></canvas></div></div><div class="card"><h3>Images</h3><div class="cv"><canvas id="o3"></canvas></div></div><div class="card"><h3>Active users</h3><div class="cv"><canvas id="o4"></canvas></div></div></div>
-  <div class="card" style="margin-top:12px"><h3>Chart notes (shown as dashed lines)</h3>${EDIT() ? '<div class="row"><input type="date" id="anD"><input id="anT" placeholder="e.g. Launched voice chat" style="flex:1"><button class="btn pri" id="anA">Add note</button></div>' : ''}<div id="anL">${S.notes.map(n => `<div class="ordrow"><span>${esc(n.d)}: ${esc(n.t)}</span>${EDIT() ? `<button class="btn sm" data-d="${n.d}">Remove</button>` : ''}</div>`).join('') || '<small>No notes yet.</small>'}</div></div>`;
+  <div class="card" style="margin-top:12px"><h3>Chart notes (shown as dashed lines)</h3>${EDIT() ? '<div class="row"><input type="date" id="anD"><input id="anT" placeholder="e.g. Launched voice chat" style="flex:1"><button class="btn pri" id="anA">Add note</button></div>' : ''}<div id="anL">${S.notes.map(x => `<div class="ordrow"><span>${esc(x.d)}: ${esc(x.t)}</span>${EDIT() ? `<button class="btn sm" data-d="${x.d}">Remove</button>` : ''}</div>`).join('') || '<small>No notes yet.</small>'}</div></div>`;
   chart('o1', 'line', lab, ds('signups', '#ff5a00', 'This period')); chart('o2', 'line', lab, ds('msgs', '#ff9a3c', 'This period')); chart('o3', 'line', lab, ds('imgs', '#8e4ec6', 'This period')); chart('o4', 'line', lab, ds('users', '#30a46c', 'This period'));
   if (EDIT()) { $('#anA').onclick = async () => { const day = $('#anD').value, t = $('#anT').value.trim(); if (!day || !t) return toast('Choose a date and write a note.'); const { error } = await sb.from('annotations').upsert({ day, text: t }); if (error) return toast(error.message); S.dash = null; render(); }; $$('#anL [data-d]').forEach(b => b.onclick = async () => { await sb.from('annotations').delete().eq('day', b.dataset.d); S.dash = null; render(); }); }
 }
 
 /* GROWTH */
-async function vGrowth() {
-  const d = await dash(), r = d.ret || {}, pc = (a, b) => b ? Math.round(a / b * 100) + '%' : '-', f = d.funnel || {}, steps = [['Visits', f.visit], ['Guest chat', f.guest], ['Signed up', f.signup], ['Verified', f.verified], ['Onboarded', f.onboarded], ['Came back', r.twice]], mx = Math.max(1, ...steps.map(s => +s[1] || 0)), dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+async function vGrowth(T) {
+  const d = await dash(); if (!live(T)) return;
+  const r = d.ret || {}, pc = (a, b) => b ? Math.round(a / b * 100) + '%' : '-', f = d.funnel || {}, steps = [['Visits', f.visit], ['Guest chat', f.guest], ['Signed up', f.signup], ['Verified', f.verified], ['Onboarded', f.onboarded], ['Came back', r.twice]], mx = Math.max(1, ...steps.map(s => +s[1] || 0)), dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const hm = {}; let hmax = 1; (d.heat || []).forEach(x => { hm[x.dow + '_' + x.h] = x.n; hmax = Math.max(hmax, x.n); });
   $('#view').innerHTML = `<div class="cards">${card('Daily active', num(d.dau))}${card('Weekly active', num(d.wau))}${card('Monthly active', num(d.mau))}${card('Stickiness (day / month)', d.mau ? Math.round(d.dau / d.mau * 100) + '%' : '-')}</div>
   <div class="grid2"><div class="card"><h3>Retention (people who joined in this range)</h3>${tbl(['Joined', 'Day 1', 'Day 7', 'Day 30', 'Came back twice'], [`<tr><td>${num(r.n)}</td><td>${pc(r.d1r, r.d1)}</td><td>${pc(r.d7r, r.d7)}</td><td>${pc(r.d30r, r.d30)}</td><td>${pc(r.twice, r.n)}</td></tr>`])}<small>Only people old enough for each day count. Needs time to fill in.</small></div>
@@ -186,28 +194,29 @@ async function vGrowth() {
   <div class="card" style="margin-top:12px"><h3>Busy hours (messages, UTC)</h3><div class="tw"><table class="heat"><tr><th></th>${Array.from({ length: 24 }, (_, h) => `<th>${h}</th>`).join('')}</tr>${dn.map((n, i) => `<tr><th>${n}</th>${Array.from({ length: 24 }, (_, h) => { const v = hm[i + '_' + h] || 0; return `<td><div title="${v}" style="opacity:${v ? 0.12 + v / hmax * .88 : .05}"></div></td>`; }).join('')}</tr>`).join('')}</table></div></div>
   <div class="grid2" style="margin-top:12px"><div class="card"><h3>Countries</h3>${barList(d.geo || [])}</div><div class="card"><h3>Devices</h3>${barList(d.device || [])}</div><div class="card"><h3>Browsers</h3>${barList(d.browser || [])}</div></div>
   <div class="card" style="margin-top:12px"><h3>Who sent the most messages (this range)</h3>${tbl(['User', 'Email', 'Messages'], (d.top || []).map(u => `<tr class="rw" data-u="${u.uid}"><td>${esc(u.username || '-')}</td><td>${esc(u.email)}</td><td>${num(u.msgs)}</td></tr>`))}</div>`;
-  $$('[data-u]').forEach(r => r.onclick = () => openUser(r.dataset.u));
+  $$('#view [data-u]').forEach(x => x.onclick = () => openUser(x.dataset.u));
 }
 
 /* USERS */
-async function vUsers() {
+async function vUsers(T) {
   const f = S.uf, v = $('#view');
-  v.innerHTML = `<div class="card"><div class="row"><input id="uq" placeholder="Search email or username" value="${esc(f.q || '')}" style="flex:1;min-width:180px"><select id="up"><option value="">All plans</option>${['free', 'pro', 'elite'].map(p => `<option ${f.plan === p ? 'selected' : ''}>${p}</option>`).join('')}</select><label class="chk"><span>Joined</span><input type="date" id="uf" value="${f.from || ''}"><span>to</span><input type="date" id="ut" value="${f.to || ''}"></label><select id="us"><option value="0">Last seen: any time</option>${[1, 7, 30].map(n => `<option value="${n}" ${+f.seen === n ? 'selected' : ''}>Seen in last ${n} day${n > 1 ? 's' : ''}</option>`).join('')}</select><label class="chk"><input type="checkbox" id="un" ${f.never ? 'checked' : ''}>Never sent a message</label><label class="chk"><input type="checkbox" id="ut2" ${f.trial ? 'checked' : ''}>Used trial</label><select id="uo"><option value="new">Newest first</option><option value="msgs" ${f.sort === 'msgs' ? 'selected' : ''}>Most messages</option></select><button class="btn pri" id="ug">Search</button><button class="btn" id="ur">Reset</button></div>
-  <div class="row" id="bulk" hidden><b id="bc"></b>${EDIT() ? '<button class="btn" id="b1">Grant plan</button><button class="btn" id="b2">Extend days</button>' : ''}${EDIT() ? '<button class="btn" id="b3">Email selected</button><button class="btn" id="b4">Email a whole plan</button>' : ''}<button class="btn" id="b0">Clear</button></div><div id="ul"><div class="empty">Loading...</div></div></div>`;
+  v.innerHTML = `<div class="card"><div class="row"><input id="uq" placeholder="Search email or username" value="${esc(f.q || '')}" style="flex:1;min-width:180px"><select id="up"><option value="">All plans</option>${PLANS.map(p => `<option ${f.plan === p ? 'selected' : ''}>${p}</option>`).join('')}</select><label class="chk"><span>Joined</span><input type="date" id="uf" value="${f.from || ''}"><span>to</span><input type="date" id="ut" value="${f.to || ''}"></label><select id="us"><option value="0">Last seen: any time</option>${[1, 7, 30].map(n => `<option value="${n}" ${+f.seen === n ? 'selected' : ''}>Seen in last ${n} day${n > 1 ? 's' : ''}</option>`).join('')}</select><label class="chk"><input type="checkbox" id="un" ${f.never ? 'checked' : ''}>Never sent a message</label><label class="chk"><input type="checkbox" id="ut2" ${f.trial ? 'checked' : ''}>Used trial</label><select id="uo"><option value="new">Newest first</option><option value="msgs" ${f.sort === 'msgs' ? 'selected' : ''}>Most messages</option></select><button class="btn pri" id="ug">Search</button><button class="btn" id="ur">Reset</button></div>
+  <div class="row" id="bulk" hidden><b id="bc"></b>${EDIT() ? '<button class="btn" id="b1">Grant plan</button><button class="btn" id="b2">Extend days</button><button class="btn" id="b3">Email selected</button><button class="btn" id="b4">Email a whole plan</button>' : ''}<button class="btn" id="b0">Clear</button></div><div id="ul"><div class="empty">Loading...</div></div></div>`;
   const read = () => { S.uf = { q: $('#uq').value.trim(), plan: $('#up').value, from: $('#uf').value, to: $('#ut').value, seen: $('#us').value, never: $('#un').checked, trial: $('#ut2').checked, sort: $('#uo').value }; };
-  $('#ug').onclick = () => { read(); vUsers(); }; $('#ur').onclick = () => { S.uf = {}; S.sel.clear(); vUsers(); }; $('#uq').onkeydown = e => { if (e.key === 'Enter') $('#ug').click(); };
+  $('#ug').onclick = () => { read(); render(); }; $('#ur').onclick = () => { S.uf = {}; S.sel.clear(); render(); }; $('#uq').onkeydown = e => { if (e.key === 'Enter') $('#ug').click(); };
   const x = S.uf, rows = await rpc('admin_users', { p_q: x.q || '', p_plan: x.plan || '', p_from: x.from || null, p_to: x.to || null, p_seen: +x.seen || 0, p_never: !!x.never, p_trial: !!x.trial, p_sort: x.sort || 'new' });
+  if (!live(T)) return;
   $('#ul').innerHTML = tbl(['', 'Email', 'Username', 'Plan', 'Messages', '7 days', 'Joined', 'Last seen', 'Country', ''], rows.map(u => `<tr class="rw" data-u="${u.uid}"><td><input type="checkbox" data-c="${u.uid}" ${S.sel.has(u.uid) ? 'checked' : ''}></td><td>${esc(u.email)}</td><td>${esc(u.username || '-')}</td><td><span class="chip ${u.plan}">${u.plan || 'free'}</span></td><td>${num(u.msgs)}</td><td>${num(u.msgs7)}</td><td>${fmtD(u.created_at)}</td><td>${u.last_seen ? ago(u.last_seen) : '-'}</td><td>${esc(u.country || '')}</td><td>${u.banned ? '<span class="chip bad">banned</span>' : ''}</td></tr>`)) + `<small>${rows.length} users shown (max 200).</small>`;
   const sync = () => { $('#bulk').hidden = !S.sel.size; $('#bc').textContent = S.sel.size + ' selected'; };
   $$('#ul tr.rw').forEach(r => r.onclick = e => { if (e.target.tagName === 'INPUT') return; openUser(r.dataset.u); });
   $$('#ul [data-c]').forEach(c => c.onchange = () => { c.checked ? S.sel.add(c.dataset.c) : S.sel.delete(c.dataset.c); sync(); }); sync();
-  $('#b0').onclick = () => { S.sel.clear(); vUsers(); };
+  $('#b0').onclick = () => { S.sel.clear(); render(); };
   if (EDIT()) {
-    $('#b1').onclick = async () => { const r = await form('Grant plan to ' + S.sel.size + ' users', [{ k: 'plan', label: 'Plan', type: 'select', options: ['pro', 'elite', 'free'] }, { k: 'days', label: 'Days (blank = no end date)', type: 'number', ph: '30' }], 'Grant'); if (r) { const c = await rpc('admin_bulk_plan', { p_users: [...S.sel], p_plan: r.plan, p_days: +r.days || null }); toast(c + ' users updated'); vUsers(); } };
-    $('#b2').onclick = async () => { const r = await form('Extend paid plans / trials', [{ k: 'days', label: 'Add how many days?', type: 'number', value: '3' }], 'Extend'); if (r) { const c = await rpc('admin_extend', { p_users: [...S.sel], p_days: +r.days || 0 }); toast(c + ' users extended'); vUsers(); } };
+    $('#b1').onclick = async () => { const r = await form('Grant plan to ' + S.sel.size + ' users', [{ k: 'plan', label: 'Plan', type: 'select', options: ['vip', 'pro', 'elite', 'free'] }, { k: 'days', label: 'Days (blank = no end date)', type: 'number', ph: '30' }], 'Grant'); if (r) { const c = await rpc('admin_bulk_plan', { p_users: [...S.sel], p_plan: r.plan, p_days: +r.days || null }); toast(c + ' users updated'); render(); } };
+    $('#b2').onclick = async () => { const r = await form('Extend paid plans / trials', [{ k: 'days', label: 'Add how many days?', type: 'number', value: '3' }], 'Extend'); if (r) { const c = await rpc('admin_extend', { p_users: [...S.sel], p_days: +r.days || 0 }); toast(c + ' users extended'); render(); } };
     const mail = async (uids, plan, label) => { const r = await form('Email ' + label, [{ k: 'subject', label: 'Subject' }, { k: 'html', label: 'Message (simple HTML allowed)', type: 'textarea', rows: 7 }], 'Send'); if (r) { try { const o = await api('mail', { subject: r.subject, html: r.html, uids, plan }); toast('Sent to ' + o.sent + ' of ' + o.total); } catch {} } };
     $('#b3').onclick = () => mail([...S.sel], '', S.sel.size + ' selected users');
-    $('#b4').onclick = async () => { const r = await form('Which plan?', [{ k: 'p', label: 'Group', type: 'select', options: [['', 'Everyone'], 'free', 'pro', 'elite'] }], 'Next'); if (r) mail(null, r.p, r.p ? r.p + ' users' : 'all users'); };
+    $('#b4').onclick = async () => { const r = await form('Which plan?', [{ k: 'p', label: 'Group', type: 'select', options: [['', 'Everyone'], ...PLANS] }], 'Next'); if (r) mail(null, r.p, r.p ? r.p + ' users' : 'all users'); };
   }
 }
 
@@ -221,12 +230,12 @@ async function openUser(uid) {
   <div class="card"><h3>Plan history</h3>${d.plans.map(p => `<div class="ordrow"><span>${esc(p.old_plan)} to ${esc(p.new_plan)}</span><small>${fmtD(p.ts)} by ${esc(p.by || 'system')}</small></div>`).join('') || '<small>No changes yet.</small>'}</div>
   ${d.errors.length ? `<div class="card"><h3>Recent errors</h3>${d.errors.map(e => `<div class="ordrow"><span>${esc(e.eng)}: ${esc(e.err)}</span><small>${ago(e.ts)}</small></div>`).join('')}</div>` : ''}
   <div class="card"><h3>Notes (only admins see these)</h3><textarea id="nt" rows="4" ${SUP() ? '' : 'disabled'}>${esc(d.note || '')}</textarea>${SUP() ? '<div class="row"><button class="btn pri" id="ns">Save note</button></div>' : ''}</div>
-  ${EDIT() ? `<div class="card"><h3>Actions</h3><div class="row"><select id="ap">${['free', 'pro', 'elite'].map(p => `<option ${u.plan === p ? 'selected' : ''}>${p}</option>`).join('')}</select><input id="ad" type="number" placeholder="days" style="width:90px"><button class="btn pri" id="aa">Set plan</button></div><div class="row">${d.bans.length ? '<button class="btn" id="ub">Remove ban</button>' : '<button class="btn bad" id="bb">Ban this user</button>'}</div></div>` : ''}`;
+  ${EDIT() ? `<div class="card"><h3>Actions</h3><div class="row"><select id="ap">${PLANS.map(p => `<option ${u.plan === p ? 'selected' : ''}>${p}</option>`).join('')}</select><input id="ad" type="number" placeholder="days" style="width:90px"><select id="asrc"><option value="grant">Granted (no credit)</option><option value="paid">Paid (test upgrade credit)</option></select><button class="btn pri" id="aa">Set plan</button></div><div class="row">${d.bans.length ? '<button class="btn" id="ub">Remove ban</button>' : '<button class="btn bad" id="bb">Ban this user</button>'}</div></div>` : ''}`;
   dr.classList.add('open'); $('#dx').onclick = () => dr.classList.remove('open');
   chart('u1', 'bar', days.map(x => x.slice(5)), [{ label: 'Messages', data: days.map(x => (d.usage.find(r => r.d === x && r.kind === 'msgs') || {}).n || 0), backgroundColor: '#ff5a00' }, { label: 'Images', data: days.map(x => (d.usage.find(r => r.d === x && r.kind === 'imgs') || {}).n || 0), backgroundColor: '#8e4ec6' }]);
   if (SUP()) $('#ns').onclick = async () => { const { error } = await sb.from('user_notes').upsert({ uid, note: $('#nt').value, updated_at: new Date().toISOString(), by: S.email }); toast(error ? error.message : 'Note saved'); };
   if (EDIT()) {
-    $('#aa').onclick = async () => { await rpc('admin_set_plan', { p_user: uid, p_plan: $('#ap').value, p_days: +$('#ad').value || null }); toast('Plan updated'); openUser(uid); };
+    $('#aa').onclick = async () => { await rpc('admin_set_plan', { p_user: uid, p_plan: $('#ap').value, p_days: +$('#ad').value || null, p_source: $('#asrc').value }); toast('Plan updated'); openUser(uid); };
     if ($('#bb')) $('#bb').onclick = async () => { const r = await form('Ban this user', [{ k: 'reason', label: 'Reason' }, { k: 'days', label: 'Days (blank = permanent)', type: 'number' }], 'Ban'); if (r) { await ban('user', uid, r.reason, +r.days); openUser(uid); } };
     if ($('#ub')) $('#ub').onclick = async () => { await sb.from('bans').delete().eq('kind', 'user').eq('k', uid); toast('Ban removed'); openUser(uid); };
   }
@@ -234,145 +243,152 @@ async function openUser(uid) {
 async function ban(kind, k, reason, days) { const { error } = await sb.from('bans').insert({ kind, k, reason: reason || null, until: days ? new Date(Date.now() + days * 864e5).toISOString() : null, by: S.email }); toast(error ? error.message : 'Banned'); }
 
 /* TRIALS */
-async function vTrials() {
-  const [t, u] = await Promise.all([rpc('admin_trials'), rpc('admin_users', {})]), now = Date.now();
-  const act = t.filter(x => x.plan_expires && new Date(x.plan_expires) > now), end = t.filter(x => !(x.plan_expires && new Date(x.plan_expires) > now)), never = u.filter(x => !x.trial_used && x.plan === 'free');
+async function vTrials(T) {
+  const [t, u] = await Promise.all([rpc('admin_trials'), rpc('admin_users', {})]); if (!live(T)) return;
+  const now = Date.now(), act = t.filter(x => x.plan_expires && new Date(x.plan_expires) > now), end = t.filter(x => !(x.plan_expires && new Date(x.plan_expires) > now)), never = u.filter(x => !x.trial_used && x.plan === 'free');
   const row = x => `<tr class="rw" data-u="${x.uid}"><td>${esc(x.email)}</td><td><span class="chip ${x.plan}">${x.plan}</span></td><td>${fmtD(x.plan_expires)}</td><td>${num(x.msgs)}</td></tr>`;
   $('#view').innerHTML = `<div class="cards">${card('On a trial or timed plan now', act.length)}${card('Trials ended', end.length)}${card('Never used the trial', never.length)}</div><div class="card"><h3>Active now</h3>${tbl(['Email', 'Plan', 'Ends', 'Messages'], act.map(row))}</div><div class="card"><h3>Ended</h3>${tbl(['Email', 'Plan', 'Ended', 'Messages'], end.map(row))}</div><div class="card"><h3>Free users who never used the trial (newest 200)</h3>${tbl(['Email', 'Username', 'Joined', 'Messages'], never.map(x => `<tr class="rw" data-u="${x.uid}"><td>${esc(x.email)}</td><td>${esc(x.username || '-')}</td><td>${fmtD(x.created_at)}</td><td>${num(x.msgs)}</td></tr>`))}</div>`;
-  $$('[data-u]').forEach(r => r.onclick = () => openUser(r.dataset.u));
+  $$('#view [data-u]').forEach(r => r.onclick = () => openUser(r.dataset.u));
 }
 
 /* ENGINES */
 const QDEF = { gemini: 500, groq: 1000, cf: 300, or: 50 };
-function vEngines() { return subs('engines', [['health', 'Health'], ['errors', 'Error log'], ['selftest', 'Self-test'], ...(EDIT() ? [['controls', 'Controls'], ['play', 'Playground'], ['identity', 'Identity prompt']] : [])], async (s, b) => ({ health: eHealth, errors: eErrors, selftest: eSelf, controls: eControls, play: ePlay, identity: eIdentity })[s](b)); }
-async function eHealth(b) {
-  const d = await rpc('admin_engines', { p_hours: S.hrs }), q = Object.assign({}, QDEF, S.set.quotas || {}), used = {}, rate = {}; (d.today || []).forEach(x => used[x.eng] = x.n); (d.hourly || []).forEach(x => rate[x.eng] = x.n / 3);
+function vEngines() { return subs('engines', [['health', 'Health'], ['errors', 'Error log'], ['selftest', 'Self-test'], ...(EDIT() ? [['controls', 'Controls'], ['play', 'Playground'], ['identity', 'Identity prompt']] : [])], (s, b, T) => ({ health: eHealth, errors: eErrors, selftest: eSelf, controls: eControls, play: ePlay, identity: eIdentity })[s](b, T)); }
+async function eHealth(b, T) {
+  const d = await rpc('admin_engines', { p_hours: S.hrs }); if (!live(T)) return;
+  const q = Object.assign({}, QDEF, S.set.quotas || {}), used = {}, rate = {}; (d.today || []).forEach(x => used[x.eng] = x.n); (d.hourly || []).forEach(x => rate[x.eng] = x.n / 3);
   b.innerHTML = `<div class="row"><select id="hh">${[[24, 'Last 24 hours'], [72, 'Last 3 days'], [168, 'Last 7 days']].map(([h, l]) => `<option value="${h}" ${S.hrs === h ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
   <div class="card"><h3>Provider board</h3>${tbl(['Engine', 'Model', 'Answered', 'Failed', 'Success', 'Average', 'Slowest 5%', 'Common errors'], d.board.map(x => { const p = Math.round(x.wins / Math.max(1, x.wins + x.fails) * 100); return `<tr><td>${esc(x.eng)}</td><td>${esc(x.model)}</td><td>${num(x.wins)}</td><td>${num(x.fails)}</td><td><span class="chip ${p >= 90 ? 'ok' : p >= 60 ? '' : 'bad'}">${p}%</span></td><td>${x.avg_ms == null ? '-' : x.avg_ms + ' ms'}</td><td>${x.p95 == null ? '-' : x.p95 + ' ms'}</td><td>${(x.errs || []).map(e => `${esc(e.c)} x${e.n}`).join(', ')}</td></tr>`; }))}</div>
   <div class="grid2" style="margin-top:12px"><div class="card"><h3>Who carries the load (today)</h3><div class="cv"><canvas id="e1"></canvas></div></div><div class="card"><h3>Quota meters (today)</h3>${['gemini', 'groq', 'cf', 'or'].map(k => { const u = used[k] || 0, pct = Math.min(100, Math.round(u / q[k] * 100)), r = rate[k] || 0, left = q[k] - u, eta = r > 0 ? (left / r) : null; return `<div><div class="row" style="margin:0"><b>${k}</b><small>${u} of about ${q[k]} requests</small><small style="margin-left:auto">${eta == null ? 'idle' : left <= 0 ? 'quota reached' : 'runs out in about ' + (eta < 1 ? Math.round(eta * 60) + ' min' : eta.toFixed(1) + ' h')}</small></div><div class="meter"><i style="width:${pct}%"></i></div></div>`; }).join('')}<small>Quotas are your own estimates. Change them in Controls.</small></div>
   <div class="card"><h3>"All engines busy" timeline</h3><div class="cv"><canvas id="e2"></canvas></div></div><div class="card"><h3>Reply speed (14 days)</h3><div class="cv"><canvas id="e3"></canvas></div></div></div>
   <div class="card" style="margin-top:12px"><h3>Engine leaderboard (thumbs up and down)</h3>${tbl(['Engine', 'Model', 'Good', 'Bad', 'Score'], d.fb.map(x => `<tr><td>${esc(x.eng)}</td><td>${esc(x.model)}</td><td>${x.up}</td><td>${x.down}</td><td>${Math.round(x.up / Math.max(1, x.up + x.down) * 100)}%</td></tr>`))}</div>`;
-  $('#hh').onchange = e => { S.hrs = +e.target.value; render(); };
+  $('#hh', b).onchange = e => { S.hrs = +e.target.value; render(); };
   chart('e1', 'doughnut', (d.today || []).map(x => x.eng), [{ data: (d.today || []).map(x => x.n), backgroundColor: PAL, borderWidth: 0 }]);
   chart('e2', 'bar', d.busy.map(x => new Date(x.h).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit' })), [{ label: 'Failures', data: d.busy.map(x => x.n), backgroundColor: '#e5484d' }]);
   chart('e3', 'line', d.speed.map(x => x.d.slice(5)), [{ label: 'Typical (ms)', data: d.speed.map(x => x.p50), borderColor: '#30a46c', tension: .3 }, { label: 'Slowest 5% (ms)', data: d.speed.map(x => x.p95), borderColor: '#e5484d', tension: .3 }]);
 }
-async function eErrors(b) { const e = await rpc('admin_errors', { p_limit: 80 }); b.innerHTML = `<div class="card"><h3>Latest errors</h3>${tbl(['When', 'Type', 'Engine', 'Model', 'Error'], e.map(x => `<tr><td>${fmtT(x.ts)}</td><td>${esc(x.kind)}</td><td>${esc(x.eng)}</td><td>${esc(x.model || '')}</td><td>${esc(x.err || '')}</td></tr>`))}</div>`; }
-async function eSelf(b) {
-  const d = await rpc('admin_engines', { p_hours: 1 }), st = d.selftest;
+async function eErrors(b, T) { const e = await rpc('admin_errors', { p_limit: 80 }); if (!live(T)) return; b.innerHTML = `<div class="card"><h3>Latest errors</h3>${tbl(['When', 'Type', 'Engine', 'Model', 'Error'], e.map(x => `<tr><td>${fmtT(x.ts)}</td><td>${esc(x.kind)}</td><td>${esc(x.eng)}</td><td>${esc(x.model || '')}</td><td>${esc(x.err || '')}</td></tr>`))}</div>`; }
+async function eSelf(b, T) {
+  const d = await rpc('admin_engines', { p_hours: 1 }); if (!live(T)) return;
+  const st = d.selftest;
   b.innerHTML = `<div class="card"><h3>Daily self-test</h3><small>Every day at 03:00 UTC, 10 easy questions go to every engine. You get an alert if one breaks or answers nonsense.</small>${EDIT() ? '<div class="row"><button class="btn pri" id="stR">Run now</button><button class="btn" id="stA">Send test alert</button></div>' : ''}${st ? `<p>Last run: ${fmtT(st.ts)}</p>${tbl(['Engine', 'Model', 'Score', 'Average', 'Problem'], st.results.map(r => `<tr><td>${esc(r.eng)}</td><td>${esc(r.model)}</td><td><span class="chip ${r.pass >= 8 ? 'ok' : r.pass >= 5 ? '' : 'bad'}">${r.pass}/10</span></td><td>${r.avg_ms} ms</td><td>${esc(r.err || '')}</td></tr>`))}` : '<p class="empty">No test has run yet.</p>'}</div>`;
-  if (EDIT()) { $('#stR').onclick = async () => { $('#stR').textContent = 'Running (up to a minute)...'; try { await api('selftest'); toast('Self-test finished'); } catch {} render(); }; $('#stA').onclick = async () => { try { await api('test_alert'); toast('Alert sent (check your email or Discord)'); } catch {} }; }
+  if (EDIT()) { $('#stR', b).onclick = async () => { $('#stR', b).textContent = 'Running (up to a minute)...'; try { await api('selftest'); toast('Self-test finished'); } catch {} render(); }; $('#stA', b).onclick = async () => { try { await api('test_alert'); toast('Alert sent (check your email or Discord)'); } catch {} }; }
 }
-async function eControls(b) {
-  await loadSettings(); const m = await api('models'), e = S.set.engines || {}, off = new Set(e.off || []), ord = e.order || {}, lim = S.set.limits || {}, q = Object.assign({}, QDEF, S.set.quotas || {}), orders = {}, PL = ['free', 'pro', 'elite'];
+async function eControls(b, T) {
+  await loadSettings(); const m = await api('models'); if (!live(T)) return;
+  const e = S.set.engines || {}, off = new Set(e.off || []), ord = e.order || {}, lim = S.set.limits || {}, q = Object.assign({}, QDEF, S.set.quotas || {}), orders = {};
+  const DM = { free: 100, vip: 300, pro: 1000, elite: 5000 }, DI = { free: 3, vip: 6, pro: 15, elite: 40 };
   const lab = id => ((m.all.find(x => x.id === id) || {}).label || id) + ' (' + id.split(':')[0] + ')';
-  PL.forEach(p => { const base = m.chains[p], cur = (ord[p] || []).filter(i => base.includes(i)); orders[p] = [...cur, ...base.filter(i => !cur.includes(i))]; });
+  PLANS.forEach(p => { const base = m.chains[p] || [], cur = (ord[p] || []).filter(i => base.includes(i)); orders[p] = [...cur, ...base.filter(i => !cur.includes(i))]; });
   b.innerHTML = `<div class="card"><h3>Engines on / off</h3><small>Switch a model off instantly if it misbehaves. No redeploy needed.</small>${m.all.map(x => `<label class="chk"><input type="checkbox" data-off="${x.id}" ${off.has(x.id) ? '' : 'checked'}>${esc(lab(x.id))}</label>`).join('')}</div>
-  <div class="grid2">${PL.map(p => `<div class="card"><h3>Order for ${p} plan</h3><div id="o_${p}"></div></div>`).join('')}</div>
-  <div class="card" style="margin-top:12px"><h3>Daily limits per plan</h3>${tbl(['Plan', 'Messages', 'Images'], PL.map(p => `<tr><td>${p}</td><td><input type="number" data-l="${p}.msgs" value="${(lim[p] || {}).msgs ?? ({ free: 100, pro: 1000, elite: 5000 })[p]}" style="width:100px"></td><td><input type="number" data-l="${p}.imgs" value="${(lim[p] || {}).imgs ?? ({ free: 3, pro: 15, elite: 40 })[p]}" style="width:100px"></td></tr>`))}<small>The server applies new limits within 15 seconds. The counter text inside the app updates after a redeploy.</small></div>
+  <div class="grid2">${PLANS.map(p => `<div class="card"><h3>Order for ${p} plan</h3><div id="o_${p}"></div></div>`).join('')}</div>
+  <div class="card" style="margin-top:12px"><h3>Daily limits per plan</h3>${tbl(['Plan', 'Messages', 'Images'], PLANS.map(p => `<tr><td>${p}</td><td><input type="number" data-l="${p}.msgs" value="${(lim[p] || {}).msgs ?? DM[p]}" style="width:100px"></td><td><input type="number" data-l="${p}.imgs" value="${(lim[p] || {}).imgs ?? DI[p]}" style="width:100px"></td></tr>`))}<small>The server applies new limits within 15 seconds. The counter text inside the app updates after a redeploy.</small></div>
   <div class="card"><h3>Provider quotas (for the meters)</h3><div class="row">${Object.keys(QDEF).map(k => `<label class="chk">${k}<input type="number" data-q="${k}" value="${q[k]}" style="width:90px"></label>`).join('')}</div></div>
   <div class="card"><label class="chk"><input type="checkbox" id="cOff" ${(S.set.cache || {}).off ? 'checked' : ''}>Turn the repeated-question cache off</label></div>
   <div class="row"><button class="btn pri" id="eSave">Save all</button><button class="btn" id="eReset">Reset engine order to default</button></div>`;
-  const draw = p => { const bx = $('#o_' + p); bx.innerHTML = orders[p].map((id, i) => `<div class="ordrow"><span>${i + 1}. ${esc(lab(id))}</span><span><button class="btn sm" data-p="${p}" data-i="${i}" data-d="-1">Up</button> <button class="btn sm" data-p="${p}" data-i="${i}" data-d="1">Down</button></span></div>`).join(''); $$('button', bx).forEach(x => x.onclick = () => { const i = +x.dataset.i, j = i + +x.dataset.d; if (j < 0 || j >= orders[p].length) return; [orders[p][i], orders[p][j]] = [orders[p][j], orders[p][i]]; draw(p); }); };
-  PL.forEach(draw);
-  $('#eSave').onclick = async () => { const o = [...$$('[data-off]')].filter(x => !x.checked).map(x => x.dataset.off), L = {}; $$('[data-l]').forEach(i => { const [p, k] = i.dataset.l.split('.'); (L[p] = L[p] || {})[k] = +i.value; }); const Q = {}; $$('[data-q]').forEach(i => Q[i.dataset.q] = +i.value); await saveSetting('engines', { off: o, order: Object.keys(ord).length || S.orderTouched ? orders : (ord || {}) }); await saveSetting('limits', L); await saveSetting('quotas', Q); await saveSetting('cache', { off: $('#cOff').checked }); };
-  $$('.ordrow button', b).forEach(x => x.addEventListener('click', () => { S.orderTouched = true; }));
-  $('#eReset').onclick = async () => { await saveSetting('engines', { off: [...$$('[data-off]')].filter(x => !x.checked).map(x => x.dataset.off), order: {} }); S.orderTouched = false; render(); };
+  let touched = false;
+  const draw = p => { const bx = $('#o_' + p, b); bx.innerHTML = orders[p].map((id, i) => `<div class="ordrow"><span>${i + 1}. ${esc(lab(id))}</span><span><button class="btn sm" data-i="${i}" data-d="-1">Up</button> <button class="btn sm" data-i="${i}" data-d="1">Down</button></span></div>`).join(''); $$('button', bx).forEach(x => x.onclick = () => { const i = +x.dataset.i, j = i + +x.dataset.d; if (j < 0 || j >= orders[p].length) return; [orders[p][i], orders[p][j]] = [orders[p][j], orders[p][i]]; touched = true; draw(p); }); };
+  PLANS.forEach(draw);
+  $('#eSave', b).onclick = async () => { const o = $$('[data-off]', b).filter(x => !x.checked).map(x => x.dataset.off), L = {}; $$('[data-l]', b).forEach(i => { const [p, k] = i.dataset.l.split('.'); (L[p] = L[p] || {})[k] = +i.value; }); const Q = {}; $$('[data-q]', b).forEach(i => Q[i.dataset.q] = +i.value); await saveSetting('engines', { off: o, order: (Object.keys(ord).length || touched) ? orders : {} }); await saveSetting('limits', L); await saveSetting('quotas', Q); await saveSetting('cache', { off: $('#cOff', b).checked }); };
+  $('#eReset', b).onclick = async () => { await saveSetting('engines', { off: $$('[data-off]', b).filter(x => !x.checked).map(x => x.dataset.off), order: {} }); render(); };
 }
-async function ePlay(b) {
-  const m = await api('models');
+async function ePlay(b, T) {
+  const m = await api('models'); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Engine playground</h3><small>Send one prompt to several engines and compare the answers.</small><textarea id="pp" rows="3" placeholder="Ask anything, e.g. Explain photosynthesis in 3 sentences."></textarea><div class="row">${m.all.map(x => `<label class="chk"><input type="checkbox" data-m="${x.id}" checked>${esc(x.label)}</label>`).join('')}</div><button class="btn pri" id="pg">Run on selected engines</button></div><div id="pr" class="pg"></div>`;
-  $('#pg').onclick = async () => { const p = $('#pp').value.trim(); if (!p) return toast('Write a prompt first.'); $('#pr').innerHTML = '<div class="empty">Asking every engine...</div>'; try { const o = await api('playground', { prompt: p, models: $$('[data-m]').filter(x => x.checked).map(x => x.dataset.m) }); $('#pr').innerHTML = o.results.map(r => `<div class="card"><b>${esc(r.id)}</b> <span class="chip ${r.ok ? 'ok' : 'bad'}">${r.ok ? r.ms + ' ms' : 'failed'}</span><p style="margin-top:8px">${esc(r.text)}</p></div>`).join(''); } catch { $('#pr').innerHTML = ''; } };
+  $('#pg', b).onclick = async () => { const p = $('#pp', b).value.trim(); if (!p) return toast('Write a prompt first.'); $('#pr', b).innerHTML = '<div class="empty">Asking every engine...</div>'; try { const o = await api('playground', { prompt: p, models: $$('[data-m]', b).filter(x => x.checked).map(x => x.dataset.m) }); if (!live(T)) return; $('#pr', b).innerHTML = o.results.map(r => `<div class="card"><b>${esc(r.id)}</b> <span class="chip ${r.ok ? 'ok' : 'bad'}">${r.ok ? r.ms + ' ms' : 'failed'}</span><p style="margin-top:8px">${esc(r.text)}</p></div>`).join(''); } catch { $('#pr', b).innerHTML = ''; } };
 }
-async function eIdentity(b) {
+async function eIdentity(b, T) {
   await loadSettings(); const cur = (S.set.identity || {}).text || (await api('identity_default')).text, { data: vers } = await sb.from('prompt_versions').select('*').order('id', { ascending: false }).limit(30);
+  if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Perses identity prompt</h3><small>This is what tells the AI who it is. Changes apply within 15 seconds. Keep the rules about not naming other companies.</small><textarea id="ip" rows="14">${esc(cur)}</textarea><div class="row"><input id="in" placeholder="What did you change? (optional)" style="flex:1"><button class="btn pri" id="is">Save new version</button></div></div><div class="card"><h3>Version history</h3>${(vers || []).map(v => `<div class="ordrow"><span>${fmtT(v.ts)} by ${esc(v.by || '')} ${v.note ? '- ' + esc(v.note) : ''}</span><button class="btn sm" data-v="${v.id}">Restore</button></div>`).join('') || '<small>No saved versions yet.</small>'}</div>`;
-  $('#is').onclick = async () => { const t = $('#ip').value.trim(); if (t.length < 50) return toast('That is too short.'); await sb.from('prompt_versions').insert({ body: t, note: $('#in').value.trim() || null, by: S.email }); if (await saveSetting('identity', { text: t })) render(); };
-  $$('[data-v]').forEach(x => x.onclick = async () => { const v = vers.find(r => r.id === +x.dataset.v); if (v && await confirmBox('Restore this version?')) { await saveSetting('identity', { text: v.body }); render(); } });
+  $('#is', b).onclick = async () => { const t = $('#ip', b).value.trim(); if (t.length < 50) return toast('That is too short.'); await sb.from('prompt_versions').insert({ body: t, note: $('#in', b).value.trim() || null, by: S.email }); if (await saveSetting('identity', { text: t })) render(); };
+  $$('[data-v]', b).forEach(x => x.onclick = async () => { const v = vers.find(r => r.id === +x.dataset.v); if (v && await confirmBox('Restore this version?')) { await saveSetting('identity', { text: v.body }); render(); } });
 }
 
 /* FEATURES */
-async function vFeatures() {
-  const d = await dash(), im = d.imgstats || {}, fe = {}; (d.feats || []).concat(d.evfeats || []).forEach(x => fe[x.k] = (fe[x.k] || 0) + +x.n);
+async function vFeatures(T) {
+  const d = await dash(); if (!live(T)) return;
+  const im = d.imgstats || {}, fe = {}; (d.feats || []).concat(d.evfeats || []).forEach(x => fe[x.k] = (fe[x.k] || 0) + +x.n);
   $('#view').innerHTML = `<div class="cards">${card('Images made', num(im.ok))}${card('Image failures', num(im.fail), `<em>${im.ok + im.fail ? Math.round(im.fail / (im.ok + im.fail) * 100) : 0}%</em>`)}${card('With watermark (free)', num(im.free))}${card('No watermark (paid)', num(im.paid))}</div><div class="grid2"><div class="card"><h3>Slash tags</h3>${barList(d.tags || [])}</div><div class="card"><h3>Modes</h3>${barList(d.modes || [])}</div><div class="card"><h3>Features (search, voice, documents, code runner, branches, shares...)</h3>${barList(Object.entries(fe).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n))}</div></div>`;
 }
 
 /* FEEDBACK */
-async function vFeedback() {
-  const r = S.fr ?? -1, st = S.fs ?? 'open', rows = await rpc('admin_feedback', { p_rating: r, p_status: st });
+async function vFeedback(T) {
+  const r = S.fr ?? -1, st = S.fs ?? 'open', rows = await rpc('admin_feedback', { p_rating: r, p_status: st }); if (!live(T)) return;
   $('#view').innerHTML = `<div class="card"><div class="row"><select id="fr"><option value="-1" ${r === -1 ? 'selected' : ''}>Thumbs down</option><option value="1" ${r === 1 ? 'selected' : ''}>Thumbs up</option><option value="0" ${r === 0 ? 'selected' : ''}>All</option></select><select id="fs"><option value="open" ${st === 'open' ? 'selected' : ''}>Open</option><option value="fixed" ${st === 'fixed' ? 'selected' : ''}>Fixed</option><option value="" ${st === '' ? 'selected' : ''}>All</option></select></div>${tbl(['When', 'Rating', 'Engine', 'Answer snippet', ''], rows.map(x => `<tr><td>${fmtT(x.created_at)}</td><td><span class="chip ${x.rating > 0 ? 'ok' : 'bad'}">${x.rating > 0 ? 'good' : 'bad'}</span></td><td>${esc(x.eng || '-')}</td><td style="white-space:normal;max-width:480px">${esc(x.snippet || '')}</td><td>${SUP() && x.status !== 'fixed' ? `<button class="btn sm" data-f="${x.id}">Mark fixed</button>` : esc(x.status || '')}</td></tr>`))}</div>`;
   $('#fr').onchange = e => { S.fr = +e.target.value; render(); }; $('#fs').onchange = e => { S.fs = e.target.value; render(); };
-  $$('[data-f]').forEach(x => x.onclick = async () => { await sb.from('feedback').update({ status: 'fixed' }).eq('id', +x.dataset.f); render(); });
+  $$('#view [data-f]').forEach(x => x.onclick = async () => { await sb.from('feedback').update({ status: 'fixed' }).eq('id', +x.dataset.f); render(); });
 }
 
 /* SUPPORT */
-async function vSupport() {
-  const { data: ts } = await sb.from('tickets').select('*').order('updated', { ascending: false }).limit(100);
+async function vSupport(T) {
+  const { data: ts } = await sb.from('tickets').select('*').order('updated', { ascending: false }).limit(100); if (!live(T)) return;
   $('#view').innerHTML = `<div class="sp"><div class="card list">${(ts || []).map(t => `<div class="ordrow rw" data-t="${t.id}" style="cursor:pointer"><span><b>${esc(t.subject)}</b><br><small>${esc(t.email || '')} - ${ago(t.updated)}</small></span><span class="chip ${t.status === 'open' ? 'bad' : 'ok'}">${esc(t.status)}</span></div>`).join('') || '<div class="empty">No messages</div>'}</div><div class="card" id="th"><div class="empty">Pick a message</div></div></div>`;
   const open = async id => {
-    const t = ts.find(x => x.id === id), { data: ms } = await sb.from('ticket_msgs').select('*').eq('ticket', id).order('id');
+    const t = ts.find(x => x.id === id), { data: ms } = await sb.from('ticket_msgs').select('*').eq('ticket', id).order('id'); if (!live(T)) return;
     $('#th').innerHTML = `<h3>${esc(t.subject)}</h3><small>${esc(t.email || '')}</small>${(ms || []).map(m => `<div class="msgb ${m.admin ? 'a' : ''}">${esc(m.body)}<br><small>${fmtT(m.ts)}</small></div>`).join('')}<textarea id="rp" rows="3" placeholder="Write a reply..."></textarea><div class="row"><button class="btn pri" id="rs">Reply in app</button><button class="btn" id="re">Reply and email</button><button class="btn" id="rc">${t.status === 'open' ? 'Close' : 'Reopen'}</button></div>`;
     const send = async mail => { const b = $('#rp').value.trim(); if (!b) return; await sb.from('ticket_msgs').insert({ ticket: id, admin: true, body: b }); await sb.from('tickets').update({ updated: new Date().toISOString(), status: 'answered' }).eq('id', id); if (mail) { try { await api('ticket_mail', { ticket: id, text: b }); } catch {} } render(); };
     $('#rs').onclick = () => send(false); $('#re').onclick = () => send(true);
     $('#rc').onclick = async () => { await sb.from('tickets').update({ status: t.status === 'open' ? 'closed' : 'open' }).eq('id', id); render(); };
   };
-  $$('[data-t]').forEach(r => r.onclick = () => open(+r.dataset.t));
+  $$('#view [data-t]').forEach(r => r.onclick = () => open(+r.dataset.t));
 }
 
 /* CONTROL */
-function vControl() { return subs('control', [['sw', 'Switches'], ['ann', 'Announcements'], ['log', "What's new"], ['poll', 'Polls'], ['road', 'Roadmap'], ['bans', 'Bans'], ['abuse', 'Abuse']], async (s, b) => ({ sw: cSwitch, ann: cAnn, log: cLog, poll: cPoll, road: cRoad, bans: cBans, abuse: cAbuse })[s](b)); }
-async function cSwitch(b) {
-  await loadSettings(); const k = S.set.kill || {}, m = S.set.maintenance || {}, fl = S.set.flags || {};
+function vControl() { return subs('control', [['sw', 'Switches'], ['ann', 'Announcements'], ['log', "What's new"], ['poll', 'Polls'], ['road', 'Roadmap'], ['bans', 'Bans'], ['abuse', 'Abuse']], (s, b, T) => ({ sw: cSwitch, ann: cAnn, log: cLog, poll: cPoll, road: cRoad, bans: cBans, abuse: cAbuse })[s](b, T)); }
+async function cSwitch(b, T) {
+  await loadSettings(); if (!live(T)) return;
+  const k = S.set.kill || {}, m = S.set.maintenance || {}, fl = S.set.flags || {};
   b.innerHTML = `<div class="card"><h3>Kill switches</h3><small>Switch an expensive feature off for everyone, instantly.</small>${[['chat', 'All chat (emergency)'], ['images', 'Image creation and image tools'], ['search', 'Web search'], ['voice', 'Voice chat'], ['docs', 'Reading documents']].map(([x, l]) => `<label class="chk"><input type="checkbox" data-k="${x}" ${k[x] ? 'checked' : ''}>Turn off: ${l}</label>`).join('')}</div>
   <div class="card"><h3>Maintenance mode</h3><label class="chk"><input type="checkbox" id="mOn" ${m.on ? 'checked' : ''}>Maintenance mode on (only admins can use Perses)</label><input id="mMsg" style="width:100%" placeholder="Message shown to users" value="${esc(m.message || '')}"></div>
   <div class="card"><h3>Feature flags and gradual rollout</h3><small>Names used by the app: voice_chat, docs, image_tools. Add your own for new features.</small><div id="fl">${Object.entries(fl).map(([n, v]) => flagRow(n, v)).join('')}</div><button class="btn" id="fa">Add a flag</button></div><button class="btn pri" id="sw">Save switches</button>`;
-  $('#fa').onclick = () => $('#fl').insertAdjacentHTML('beforeend', flagRow('', { on: true, pct: 100 }));
-  $('#sw').onclick = async () => { const K = {}; $$('[data-k]').forEach(x => K[x.dataset.k] = x.checked); const F = {}; $$('#fl .row').forEach(r => { const n = $('.fn2', r).value.trim(); if (n) F[n] = { on: $('.fo', r).checked, pct: Math.max(0, Math.min(100, +$('.fp', r).value || 0)) }; }); await saveSetting('kill', K); await saveSetting('maintenance', { on: $('#mOn').checked, message: $('#mMsg').value.trim() }); await saveSetting('flags', F); };
+  $('#fa', b).onclick = () => $('#fl', b).insertAdjacentHTML('beforeend', flagRow('', { on: true, pct: 100 }));
+  $('#sw', b).onclick = async () => { const K = {}; $$('[data-k]', b).forEach(x => K[x.dataset.k] = x.checked); const F = {}; $$('#fl .row', b).forEach(r => { const n = $('.fn2', r).value.trim(); if (n) F[n] = { on: $('.fo', r).checked, pct: Math.max(0, Math.min(100, +$('.fp', r).value || 0)) }; }); await saveSetting('kill', K); await saveSetting('maintenance', { on: $('#mOn', b).checked, message: $('#mMsg', b).value.trim() }); await saveSetting('flags', F); };
 }
 const flagRow = (n, v) => `<div class="row"><input class="fn2" placeholder="flag name" value="${esc(n)}"><label class="chk"><input type="checkbox" class="fo" ${v.on !== false ? 'checked' : ''}>on</label><label class="chk">show to <input type="number" class="fp" value="${v.pct ?? 100}" style="width:70px">% of users</label></div>`;
-async function crud(b, table, title, cols, newFields, mk) {
-  const { data } = await sb.from(table).select('*').order('id', { ascending: false }).limit(50);
+async function crud(b, T, table, title, cols, newFields, mk) {
+  const { data } = await sb.from(table).select('*').order('id', { ascending: false }).limit(50); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>${title}</h3><button class="btn pri" id="cn">Add new</button></div><div class="card">${tbl(cols.map(c => c[1]).concat(['']), (data || []).map(r => `<tr>${cols.map(c => `<td style="white-space:normal;max-width:340px">${c[2] ? c[2](r) : esc(r[c[0]])}</td>`).join('')}<td><button class="btn sm" data-x="${r.id}">Delete</button></td></tr>`))}</div>`;
-  $('#cn').onclick = async () => { const r = await form(title, newFields, 'Create'); if (r) { const { error } = await sb.from(table).insert(mk(r)); toast(error ? error.message : 'Created'); render(); } };
-  $$('[data-x]').forEach(x => x.onclick = async () => { if (await confirmBox('Delete this?')) { await sb.from(table).delete().eq('id', +x.dataset.x); render(); } });
+  $('#cn', b).onclick = async () => { const r = await form(title, newFields, 'Create'); if (r) { const { error } = await sb.from(table).insert(mk(r)); toast(error ? error.message : 'Created'); render(); } };
+  $$('[data-x]', b).forEach(x => x.onclick = async () => { if (await confirmBox('Delete this?')) { await sb.from(table).delete().eq('id', +x.dataset.x); render(); } });
 }
-const cAnn = b => crud(b, 'announcements', 'Announcements', [['title', 'Title'], ['body', 'Text'], ['kind', 'Type'], ['plans', 'Plans', r => esc((r.plans || []).join(', ') || 'all')], ['countries', 'Countries', r => esc((r.countries || []).join(', ') || 'all')], ['active', 'Live', r => r.active ? 'yes' : 'no']], [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Message', type: 'textarea', rows: 3 }, { k: 'kind', label: 'Show as', type: 'select', options: [['banner', 'Banner at the top'], ['popup', 'Popup (once)']] }, { k: 'plans', label: 'Only these plans (comma list: free,pro,elite). Blank = everyone' }, { k: 'countries', label: 'Only these countries (codes like US,GB). Blank = everyone' }, { k: 'ends', label: 'Ends on (optional)', type: 'date' }], r => ({ title: r.title, body: r.body, kind: r.kind, plans: r.plans.trim() ? r.plans.split(',').map(s => s.trim()) : null, countries: r.countries.trim() ? r.countries.split(',').map(s => s.trim().toUpperCase()) : null, ends: r.ends || null }));
-const cLog = b => crud(b, 'changelog', "What's new entries", [['title', 'Title'], ['body', 'Text'], ['ts', 'Date', r => fmtD(r.ts)]], [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Details', type: 'textarea', rows: 4 }], r => ({ title: r.title, body: r.body }));
-async function cPoll(b) {
-  const { data: p } = await sb.from('polls').select('*').order('id', { ascending: false }).limit(20), { data: v } = await sb.from('poll_votes').select('poll,opt');
+const cAnn = (b, T) => crud(b, T, 'announcements', 'Announcements', [['title', 'Title'], ['body', 'Text'], ['kind', 'Type'], ['plans', 'Plans', r => esc((r.plans || []).join(', ') || 'all')], ['countries', 'Countries', r => esc((r.countries || []).join(', ') || 'all')], ['active', 'Live', r => r.active ? 'yes' : 'no']], [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Message', type: 'textarea', rows: 3 }, { k: 'kind', label: 'Show as', type: 'select', options: [['banner', 'Banner at the top'], ['popup', 'Popup (once)']] }, { k: 'plans', label: 'Only these plans (comma list: free,vip,pro,elite). Blank = everyone' }, { k: 'countries', label: 'Only these countries (codes like US,GB). Blank = everyone' }, { k: 'ends', label: 'Ends on (optional)', type: 'date' }], r => ({ title: r.title, body: r.body, kind: r.kind, plans: r.plans.trim() ? r.plans.split(',').map(s => s.trim()) : null, countries: r.countries.trim() ? r.countries.split(',').map(s => s.trim().toUpperCase()) : null, ends: r.ends || null }));
+const cLog = (b, T) => crud(b, T, 'changelog', "What's new entries", [['title', 'Title'], ['body', 'Text'], ['ts', 'Date', r => fmtD(r.ts)]], [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Details', type: 'textarea', rows: 4 }], r => ({ title: r.title, body: r.body }));
+async function cPoll(b, T) {
+  const [{ data: p }, { data: v }] = await Promise.all([sb.from('polls').select('*').order('id', { ascending: false }).limit(20), sb.from('poll_votes').select('poll,opt')]); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Polls</h3><button class="btn pri" id="pn">New poll</button><small> Only the newest active poll is shown to users.</small></div>${(p || []).map(x => { const c = (x.opts || []).map((o, i) => ({ k: o, n: (v || []).filter(y => y.poll === x.id && y.opt === i).length })); return `<div class="card"><b>${esc(x.q)}</b> <span class="chip ${x.active ? 'ok' : ''}">${x.active ? 'live' : 'off'}</span>${barList(c)}<div class="row"><button class="btn sm" data-t="${x.id}" data-a="${x.active}">${x.active ? 'Turn off' : 'Turn on'}</button><button class="btn sm" data-x="${x.id}">Delete</button></div></div>`; }).join('')}`;
-  $('#pn').onclick = async () => { const r = await form('New poll', [{ k: 'q', label: 'Question' }, { k: 'o', label: 'Options (one per line)', type: 'textarea', rows: 4 }], 'Create'); if (r) { const o = r.o.split('\n').map(s => s.trim()).filter(Boolean); if (!r.q.trim() || o.length < 2) return toast('Add a question and at least 2 options.'); await sb.from('polls').update({ active: false }).eq('active', true); await sb.from('polls').insert({ q: r.q.trim(), opts: o }); render(); } };
-  $$('[data-t]').forEach(x => x.onclick = async () => { await sb.from('polls').update({ active: x.dataset.a !== 'true' }).eq('id', +x.dataset.t); render(); });
-  $$('[data-x]').forEach(x => x.onclick = async () => { if (await confirmBox('Delete poll?')) { await sb.from('polls').delete().eq('id', +x.dataset.x); render(); } });
+  $('#pn', b).onclick = async () => { const r = await form('New poll', [{ k: 'q', label: 'Question' }, { k: 'o', label: 'Options (one per line)', type: 'textarea', rows: 4 }], 'Create'); if (r) { const o = r.o.split('\n').map(s => s.trim()).filter(Boolean); if (!r.q.trim() || o.length < 2) return toast('Add a question and at least 2 options.'); await sb.from('polls').update({ active: false }).eq('active', true); await sb.from('polls').insert({ q: r.q.trim(), opts: o }); render(); } };
+  $$('[data-t]', b).forEach(x => x.onclick = async () => { await sb.from('polls').update({ active: x.dataset.a !== 'true' }).eq('id', +x.dataset.t); render(); });
+  $$('[data-x]', b).forEach(x => x.onclick = async () => { if (await confirmBox('Delete poll?')) { await sb.from('polls').delete().eq('id', +x.dataset.x); render(); } });
 }
-async function cRoad(b) {
-  const { data: r } = await sb.from('roadmap').select('*').order('id', { ascending: false }), { data: v } = await sb.from('roadmap_votes').select('item');
+async function cRoad(b, T) {
+  const [{ data: r }, { data: v }] = await Promise.all([sb.from('roadmap').select('*').order('id', { ascending: false }), sb.from('roadmap_votes').select('item')]); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Roadmap</h3><button class="btn pri" id="rn">Add idea</button></div><div class="card">${tbl(['Idea', 'Votes', 'Status', ''], (r || []).map(x => `<tr><td style="white-space:normal">${esc(x.title)}<br><small>${esc(x.body || '')}</small></td><td>${(v || []).filter(y => y.item === x.id).length}</td><td><select data-s="${x.id}">${['planned', 'in progress', 'shipped'].map(s => `<option ${x.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td><td><button class="btn sm" data-x="${x.id}">Delete</button></td></tr>`))}</div>`;
-  $('#rn').onclick = async () => { const f = await form('New idea', [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Short description', type: 'textarea', rows: 3 }], 'Add'); if (f && f.title.trim()) { await sb.from('roadmap').insert({ title: f.title.trim(), body: f.body.trim() }); render(); } };
-  $$('[data-s]').forEach(x => x.onchange = async () => { await sb.from('roadmap').update({ status: x.value }).eq('id', +x.dataset.s); toast('Updated'); });
-  $$('[data-x]').forEach(x => x.onclick = async () => { if (await confirmBox('Delete idea?')) { await sb.from('roadmap').delete().eq('id', +x.dataset.x); render(); } });
+  $('#rn', b).onclick = async () => { const f = await form('New idea', [{ k: 'title', label: 'Title' }, { k: 'body', label: 'Short description', type: 'textarea', rows: 3 }], 'Add'); if (f && f.title.trim()) { await sb.from('roadmap').insert({ title: f.title.trim(), body: f.body.trim() }); render(); } };
+  $$('[data-s]', b).forEach(x => x.onchange = async () => { await sb.from('roadmap').update({ status: x.value }).eq('id', +x.dataset.s); toast('Updated'); });
+  $$('[data-x]', b).forEach(x => x.onclick = async () => { if (await confirmBox('Delete idea?')) { await sb.from('roadmap').delete().eq('id', +x.dataset.x); render(); } });
 }
-async function cBans(b) {
-  const { data } = await sb.from('bans').select('*').order('id', { ascending: false }).limit(100);
+async function cBans(b, T) {
+  const { data } = await sb.from('bans').select('*').order('id', { ascending: false }).limit(100); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Bans</h3><button class="btn pri" id="bn">Add ban</button><small> Users, IP codes and guest codes (copy them from the Abuse tab).</small></div><div class="card">${tbl(['Type', 'Who', 'Reason', 'Until', ''], (data || []).map(x => `<tr><td>${x.kind}</td><td>${esc(x.k)}</td><td>${esc(x.reason || '')}</td><td>${x.until ? fmtD(x.until) : 'permanent'}</td><td><button class="btn sm" data-x="${x.id}">Remove</button></td></tr>`))}</div>`;
-  $('#bn').onclick = async () => { const r = await form('Add ban', [{ k: 'kind', label: 'Type', type: 'select', options: ['user', 'ip', 'guest'] }, { k: 'k', label: 'User id, IP code or guest code' }, { k: 'reason', label: 'Reason' }, { k: 'days', label: 'Days (blank = permanent)', type: 'number' }], 'Ban'); if (r && r.k.trim()) { await ban(r.kind, r.k.trim(), r.reason, +r.days); render(); } };
-  $$('[data-x]').forEach(x => x.onclick = async () => { await sb.from('bans').delete().eq('id', +x.dataset.x); render(); });
+  $('#bn', b).onclick = async () => { const r = await form('Add ban', [{ k: 'kind', label: 'Type', type: 'select', options: ['user', 'ip', 'guest'] }, { k: 'k', label: 'User id, IP code or guest code' }, { k: 'reason', label: 'Reason' }, { k: 'days', label: 'Days (blank = permanent)', type: 'number' }], 'Ban'); if (r && r.k.trim()) { await ban(r.kind, r.k.trim(), r.reason, +r.days); render(); } };
+  $$('[data-x]', b).forEach(x => x.onclick = async () => { await sb.from('bans').delete().eq('id', +x.dataset.x); render(); });
 }
-async function cAbuse(b) {
-  const d = await rpc('admin_abuse');
+async function cAbuse(b, T) {
+  const d = await rpc('admin_abuse'); if (!live(T)) return;
   b.innerHTML = `<div class="card"><h3>Many accounts from one network (7 days)</h3>${tbl(['Network code', 'Accounts', 'Requests', ''], d.ips.map(x => `<tr><td>${esc(x.ih)}</td><td>${x.accounts}</td><td>${x.reqs}</td><td>${EDIT() ? `<button class="btn sm" data-b="ip" data-k="${esc(x.ih)}">Ban</button>` : ''}</td></tr>`))}</div><div class="card"><h3>Message bursts (over 40 in 5 minutes)</h3>${tbl(['User', 'Peak in 5 min', ''], d.bursts.map(x => `<tr class="rw" data-u="${x.uid}"><td>${esc(x.email)}</td><td>${x.peak}</td><td></td></tr>`))}</div><div class="card"><h3>Heavy guests (24 hours)</h3>${tbl(['Guest code', 'Requests', ''], d.guests.map(x => `<tr><td>${esc(x.gk)}</td><td>${x.reqs}</td><td>${EDIT() ? `<button class="btn sm" data-b="guest" data-k="${esc(x.gk)}">Ban</button>` : ''}</td></tr>`))}</div>`;
-  $$('[data-b]').forEach(x => x.onclick = async () => { if (await confirmBox('Ban this ' + x.dataset.b + '?')) { await ban(x.dataset.b, x.dataset.k, 'Abuse detector', 0); render(); } });
-  $$('[data-u]').forEach(r => r.onclick = () => openUser(r.dataset.u));
+  $$('[data-b]', b).forEach(x => x.onclick = async () => { if (await confirmBox('Ban this ' + x.dataset.b + '?')) { await ban(x.dataset.b, x.dataset.k, 'Abuse detector', 0); render(); } });
+  $$('[data-u]', b).forEach(r => r.onclick = () => openUser(r.dataset.u));
 }
 
-/* ROLES + AUDIT */
-async function vRoles() {
-  const { data } = await sb.from('admin_roles').select('*');
+/* ROLES + AUDIT + STATUS */
+async function vRoles(T) {
+  const { data } = await sb.from('admin_roles').select('*'); if (!live(T)) return;
   $('#view').innerHTML = `<div class="card"><h3>Admin roles</h3><small>Owner: everything, including this page and the audit log. Admin: edit most things. Support: tickets, notes and feedback. Viewer: read only.</small><div class="row"><button class="btn pri" id="ra">Add or change a role</button></div>${tbl(['Email', 'Role', ''], (data || []).map(x => `<tr><td>${esc(x.email)}</td><td><span class="chip">${x.role}</span></td><td><button class="btn sm" data-e="${esc(x.email)}">Remove</button></td></tr>`))}</div>`;
   $('#ra').onclick = async () => { const r = await form('Admin role', [{ k: 'email', label: 'Email', type: 'email' }, { k: 'role', label: 'Role', type: 'select', options: ['viewer', 'support', 'admin', 'owner'] }], 'Save'); if (r && r.email.trim()) { const { error } = await sb.from('admin_roles').upsert({ email: r.email.trim().toLowerCase(), role: r.role }); toast(error ? error.message : 'Saved'); render(); } };
-  $$('[data-e]').forEach(x => x.onclick = async () => { if (x.dataset.e.toLowerCase() === S.email) return toast('You cannot remove yourself.'); if (await confirmBox('Remove this admin?')) { await sb.from('admin_roles').delete().eq('email', x.dataset.e); render(); } });
+  $$('#view [data-e]').forEach(x => x.onclick = async () => { if (x.dataset.e.toLowerCase() === S.email) return toast('You cannot remove yourself.'); if (await confirmBox('Remove this admin?')) { await sb.from('admin_roles').delete().eq('email', x.dataset.e); render(); } });
 }
-async function vAudit() { const { data } = await sb.from('audit_log').select('*').order('id', { ascending: false }).limit(200); $('#view').innerHTML = `<div class="card"><h3>Audit log (owner only)</h3>${tbl(['When', 'Who', 'Action', 'Target', 'Details'], (data || []).map(x => `<tr><td>${fmtT(x.ts)}</td><td>${esc(x.actor)}</td><td>${esc(x.action)}</td><td>${esc(x.target || '')}</td><td style="white-space:normal;max-width:420px"><small>${esc(JSON.stringify(x.detail || {}).slice(0, 200))}</small></td></tr>`))}</div>`; }
+async function vAudit(T) { const { data } = await sb.from('audit_log').select('*').order('id', { ascending: false }).limit(200); if (!live(T)) return; $('#view').innerHTML = `<div class="card"><h3>Audit log (owner only)</h3>${tbl(['When', 'Who', 'Action', 'Target', 'Details'], (data || []).map(x => `<tr><td>${fmtT(x.ts)}</td><td>${esc(x.actor)}</td><td>${esc(x.action)}</td><td>${esc(x.target || '')}</td><td style="white-space:normal;max-width:420px"><small>${esc(JSON.stringify(x.detail || {}).slice(0, 200))}</small></td></tr>`))}</div>`; }
 function vStatus() { $('#view').innerHTML = `<div class="card"><h3>Public status page</h3><p>Your users can see live system health here:</p><div class="row"><a class="btn pri" href="status.html" target="_blank">Open status page</a><button class="btn" id="cp">Copy link</button></div></div>`; $('#cp').onclick = () => { navigator.clipboard.writeText(location.origin + '/status.html'); toast('Link copied'); }; }
 
 /* ---------- shell ---------- */
@@ -383,13 +399,29 @@ function buildNav() {
   let g = '', html = `<div class="brand"><img src="https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png" alt="">Perses</div><div class="role">${S.role} - ${esc(S.email)}</div>`;
   Object.entries(TABS).forEach(([k, [l, , grp]]) => { if (!allowed(k)) return; if (grp !== g) { g = grp; html += `<div class="ng">${grp}</div>`; } html += `<button class="t ${k === S.tab ? 'on' : ''}" data-t="${k}">${l}</button>`; });
   html += '<div class="foot"><button class="btn" id="thm">Light / dark</button><a class="btn" href="index.html" style="text-align:center">Back to Perses</a></div>';
-  $('#nav').innerHTML = html; $$('#nav .t').forEach(b => b.onclick = () => { S.tab = b.dataset.t; $('#drw').classList.remove('open'); buildNav(); render(); });
-  $('#thm').onclick = () => { const h = document.documentElement; h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('pa_theme', h.dataset.theme); render(true); };
+  $('#nav').innerHTML = html;
+}
+/* one permanent click listener for the menu (it can never be lost when the page redraws) */
+$('#nav').addEventListener('click', e => {
+  const t = e.target.closest('.t');
+  if (t) { S.tab = t.dataset.t; $('#drw').classList.remove('open'); $$('#nav .t').forEach(x => x.classList.toggle('on', x === t)); try { t.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch {} render(); return; }
+  if (e.target.closest('#thm')) { const h = document.documentElement; h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('pa_theme', h.dataset.theme); render(true); }
+});
+function tick() {
+  const ae = document.activeElement, typing = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName) && $('#view').contains(ae);
+  if ($('.mod') || $('#drw.open') || typing) { S.t = setTimeout(tick, 3000); return; }   /* do not redraw while you are using the page */
+  render(true);
 }
 async function render(quiet) {
-  clearTimeout(S.t); $('#ttl').textContent = TABS[S.tab][0]; const v = $('#view'); if (!quiet) v.innerHTML = '<div class="empty">Loading...</div>';
-  try { await TABS[S.tab][1](); } catch (e) { if (!quiet) v.innerHTML = '<div class="empty">Could not load this page: ' + esc(e.message || e) + '</div>'; }
-  const sec = +$('#auto').value; if (sec && AUTO.includes(S.tab)) S.t = setTimeout(() => { if (!$('.mod') && !$('#drw.open')) render(true); else render(true); }, sec * 1000);
+  clearTimeout(S.t); const T = ++S.rt; $('#ttl').textContent = TABS[S.tab][0];
+  if (!quiet) $('#view').innerHTML = '<div class="empty">Loading...</div>';
+  try { await TABS[S.tab][1](T); }
+  catch (e) {
+    if (!live(T)) return;
+    if (!quiet) { $('#view').innerHTML = '<div class="empty">Could not load this page: ' + esc(e.message || e) + '<br><br><button class="btn" id="rtry">Try again</button></div>'; const b = $('#rtry'); if (b) b.onclick = () => render(); }
+  }
+  if (!live(T)) return;
+  const sec = +$('#auto').value; if (sec && AUTO.includes(S.tab)) S.t = setTimeout(tick, sec * 1000);
 }
 function setRange(from, to) { S.from = from; S.to = to; $('#dFrom').value = from; $('#dTo').value = to; S.dash = null; }
 $$('[data-q]').forEach(b => b.onclick = () => { const n = +b.dataset.q, t = new Date(); setRange(iso(new Date(Date.now() - (n - 1) * 864e5)), iso(t)); render(); });
