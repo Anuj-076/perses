@@ -23,6 +23,7 @@ export const M = {
 const OR_MODELS = (process.env.OPENROUTER_MODELS || 'openai/gpt-oss-120b:free,openai/gpt-oss-20b:free').split(',').map(s => s.trim()).filter(Boolean).map(id => ({ p: 'or', id }));
 export const CHAINS = {
   free:  [M.groq120, M.g35lite, M.cf120, M.groq20, M.g31lite, M.cf20, M.cfQwen, M.cfGlm, ...OR_MODELS],
+  vip:   [M.g35lite, M.groq120, M.cf120, M.groq20, M.g31lite, M.cf20, M.cfQwen, M.cfGlm, ...OR_MODELS],
   pro:   [M.g38, M.groq120, M.cf120, M.g35lite, M.groq20, M.cf20, M.g31lite, M.cfQwen, M.cfGlm, ...OR_MODELS],
   elite: [M.g38deep, M.g35, M.groq120, M.cf120, M.g35lite, M.groq20, M.cfQwen, M.cf20, M.g31lite, M.cfGlm, ...OR_MODELS]
 };
