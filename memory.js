@@ -1,6 +1,6 @@
 /* Perses automatic memory + loader for the extra plugin files */
 (() => {
-  ['merge', 'community', 'lab', 'notes', 'diagrams', 'sources', 'secure'].forEach(n => { const s = document.createElement('script'); s.src = n + '.js'; s.async = false; s.onerror = () => s.remove(); document.body.append(s); });
+  ['merge', 'community', 'lab', 'notes', 'diagrams', 'sources', 'secure', 'ui'].forEach(n => { const s = document.createElement('script'); s.src = n + '.js'; s.async = false; s.onerror = () => s.remove(); document.body.append(s); });
 
   const KEY = 'perses_automem';
   const enabled = () => localStorage.getItem(KEY) !== '0';
