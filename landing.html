@@ -8,12 +8,12 @@
 <link rel="icon" href="https://i.ibb.co/0V6cpgY3/AI-logo-no-bg.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#ff5a00;--accent2:#ff9a3c;--bg:#0f0f0f;--panel:#1a1a1a;--panel2:#222;--line:#2c2c2c;--text:#ececec;--dim:#9a9a9a}
+:root{--accent:#ff5a00;--accent2:#ff9a3c;--bg:#0f0f12;--panel:#17171c;--panel2:#1e1e24;--line:#2a2a31;--text:#ececf0;--dim:#9b9ba6}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-nav{position:sticky;top:0;z-index:20;background:rgba(15,15,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:20;background:rgba(15,15,18,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 nav .wrap{display:flex;align-items:center;gap:22px;height:62px}
 .brand{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-weight:700;font-size:21px}
 .brand img{width:34px;height:34px;border-radius:50%}
@@ -54,11 +54,12 @@ code{font-family:'JetBrains Mono',monospace;background:var(--panel2);padding:2px
 .seg{display:flex;width:max-content;margin:0 auto 24px;background:var(--panel2);border-radius:99px;padding:4px}
 .seg button{padding:8px 20px;border-radius:99px;font-weight:600;font-size:14px;color:var(--dim);background:none;border:0;cursor:pointer;font-family:inherit}
 .seg button.on{background:var(--panel);color:var(--text)}.seg small{color:var(--accent)}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-.plan{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px 20px;display:flex;flex-direction:column;gap:8px}
-.plan.pro{border-color:var(--accent);box-shadow:0 12px 40px rgba(255,90,0,.15)}.plan.elite{border-color:#d4a73a}
-.plan .bd{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px}
-.plan.elite .bd{background:#d4a73a;color:#241a00}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:16px}
+.plan{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px 20px;display:flex;flex-direction:column;gap:8px;transition:.25s}
+.plan:hover{transform:translateY(-4px);box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.plan.vip{border-color:#30a46c}.plan.pro{border-color:var(--accent);box-shadow:0 12px 40px rgba(255,90,0,.15)}.plan.elite{border-color:#d4a73a}
+.plan .bd{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px;white-space:nowrap}
+.plan.vip .bd{background:#30a46c}.plan.elite .bd{background:#d4a73a;color:#241a00}
 .price{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;line-height:1.1}.price small{font-family:Inter;font-size:13px;color:var(--dim);font-weight:400}
 .plan ul{list-style:none;display:flex;flex-direction:column;gap:7px;font-size:14px;margin:8px 0 14px;flex:1}
 .plan li::before{content:"+ ";color:#4cc38a;font-weight:700}
@@ -99,9 +100,9 @@ footer a:hover{color:var(--text)}
     <div class="card"><em class="tg">Image</em><h3>Create and edit images</h3><p>Describe a picture and get it. Remove backgrounds, restyle photos, make logos, avatars and memes.</p></div>
     <div class="card"><em class="tg">Files</em><h3>Read your documents</h3><p>Attach PDF, Word or Excel files, then ask questions or get a summary.</p></div>
     <div class="card"><em class="tg">Voice</em><h3>Talk to Perses</h3><p>Dictate with the mic, or have a hands-free voice conversation.</p></div>
-    <div class="card"><em class="tg">Web</em><h3>Web search with sources</h3><p>Turn on Web search for up-to-date answers with links to sources.</p></div>
+    <div class="card"><em class="tg">Web</em><h3>Web search with sources</h3><p>Turn on Web search, or run a deep research report with sources.</p></div>
     <div class="card"><em class="tg">Exams</em><h3>Exam prep your way</h3><p>Tell Perses the exam and the question style, and it quizzes and grades you.</p></div>
-    <div class="card"><em class="tg">Organize</em><h3>Projects and folders</h3><p>Keep chats in projects with their own instructions. Pin favorites and branch a chat to try another idea.</p></div>
+    <div class="card"><em class="tg">Organize</em><h3>Projects and folders</h3><p>Keep chats in projects with their own instructions. Pin favorites, branch a chat, and open any chat from its own link.</p></div>
     <div class="card"><em class="tg">Sync</em><h3>Your chats, everywhere</h3><p>Turn on cloud sync to keep your chats on all your devices. It is always your choice.</p></div>
     <div class="card"><em class="tg">Memory</em><h3>It remembers you</h3><p>Perses can remember your preferences, and you can see and delete everything it keeps.</p></div>
     <div class="card"><em class="tg">Safe</em><h3>Safe for every age</h3><p>For ages 7 and up, with automatic kid-safe and teen-safe modes.</p></div>
@@ -115,7 +116,7 @@ footer a:hover{color:var(--text)}
     <div class="step"><h3>Open Perses</h3><p>Click "Start chatting free". You can try it as a guest, no sign-up needed.</p></div>
     <div class="step"><h3>Pick a mode</h3><p>Choose General, Study Focus, Code Helper, Math Solver, Artist, Writer or Exam Prep in the sidebar.</p></div>
     <div class="step"><h3>Type or talk</h3><p>Type a message, tap the mic, or press the + button to add photos and documents.</p></div>
-    <div class="step"><h3>Use tags</h3><p>Start a message with / for shortcuts like /image, /code and /math.</p></div>
+    <div class="step"><h3>Use tags</h3><p>Start a message with / for shortcuts like /image, /code and /math. Press Ctrl+K to jump between chats.</p></div>
   </div>
   <h2 style="margin-top:56px;font-size:30px">Slash tags</h2>
   <p class="sub">Type / at the start of your message. Click an example to copy it.</p>
@@ -127,20 +128,24 @@ footer a:hover{color:var(--text)}
     <tr><td><code>/write</code></td><td>Polished writing: emails, essays, speeches</td><td class="try" data-c="/write a short farewell speech for my teacher">/write a short farewell speech for my teacher</td></tr>
     <tr><td><code>/math</code></td><td>Solves step by step, with formulas</td><td class="try" data-c="/math solve 2x^2 - 5x + 2 = 0">/math solve 2x^2 - 5x + 2 = 0</td></tr>
     <tr><td><code>/summarize</code></td><td>Summarizes pasted text or an attached document</td><td class="try" data-c="/summarize">/summarize (after attaching a file)</td></tr>
+    <tr><td><code>/research</code></td><td>Runs several web searches and writes a sourced report</td><td class="try" data-c="/research electric cars in 2026">/research electric cars in 2026</td></tr>
   </table>
   <p class="note">More: say <code>remember that I prefer short answers</code> and Perses saves it to your memory. Select any text in an answer to rewrite, shorten, translate or explain it.</p>
 </div></section>
 
 <section id="pricing"><div class="wrap">
   <h2>Simple pricing</h2>
-  <p class="sub">Start free. New accounts can try Pro free for 3 days.</p>
+  <p class="sub">Start free. New accounts can try Pro free for 3 days. Upgrading later? We subtract what you already pay.</p>
   <div class="seg" id="seg"><button data-p="m" class="on">Monthly</button><button data-p="y">Yearly <small>save 10%</small></button></div>
   <div class="plans">
     <div class="plan"><h3>Perses (Free)</h3><div class="price">$0</div>
-      <ul><li>100 messages a day</li><li>3 AI images a day</li><li>Up to 3 projects</li><li>Documents, code runner and voice chat</li><li>Small Perses watermark on images</li></ul>
+      <ul><li>100 messages a day</li><li>3 AI images a day</li><li>3 projects</li><li>Documents, code runner and voice chat</li><li>Small Perses watermark on images</li></ul>
       <a class="btn" href="index.html" onclick="localStorage.setItem('perses_seen','1')">Start free</a></div>
+    <div class="plan vip"><span class="bd">Starter</span><h3>Perses VIP</h3><div class="price" data-m="1.99">$1.99<small> / month</small></div>
+      <ul><li>300 messages a day</li><li>6 AI images a day</li><li>No watermark on images</li><li>8 projects with folder colors</li><li>Custom background</li><li>Priority over free users</li></ul>
+      <a class="btn" href="index.html?auth=signup" onclick="localStorage.setItem('perses_seen','1')">Get VIP</a></div>
     <div class="plan pro"><span class="bd">Most popular</span><h3>Perses Pro</h3><div class="price" data-m="5.99">$5.99<small> / month</small></div>
-      <ul><li>1,000 messages a day</li><li>15 AI images a day</li><li>No watermark on images</li><li>Faster, smarter replies</li><li>20 projects with folder colors</li><li>Custom background</li></ul>
+      <ul><li>1,000 messages a day</li><li>15 AI images a day</li><li>Faster, smarter replies</li><li>20 projects with folder colors</li><li>Priority over VIP and free</li><li>Everything in VIP</li></ul>
       <a class="btn pri" href="index.html?auth=signup" onclick="localStorage.setItem('perses_seen','1')">Try Pro free for 3 days</a></div>
     <div class="plan elite"><span class="bd">Best value</span><h3>Perses Elite</h3><div class="price" data-m="10.99">$10.99<small> / month</small></div>
       <ul><li>5,000 messages a day</li><li>40 AI images a day</li><li>Deep-thinking mode</li><li>Top priority, least waiting</li><li>100 projects with folder colors</li><li>Early access to new features</li></ul>
@@ -153,6 +158,7 @@ footer a:hover{color:var(--text)}
   <h2>Questions</h2><p class="sub">Quick answers.</p>
   <details><summary>Who made Perses?</summary><p>Perses was created by its founder, Anuj Jha, and was established on 26 October 2026.</p></details>
   <details><summary>Is it really free?</summary><p>Yes. The Free plan gives you 100 messages and 3 images every day. You can even try 10 messages as a guest without signing up.</p></details>
+  <details><summary>What happens if I upgrade later?</summary><p>The price of the plan you already pay for is subtracted from the first payment of the new plan, and you see the full price struck through next to your price.</p></details>
   <details><summary>Who can use Perses?</summary><p>Anyone aged 7 and over. Children under 13 should use it together with a parent or guardian. Perses switches to kid-safe or teen-safe mode automatically based on the birthday you enter.</p></details>
   <details><summary>Are my chats private?</summary><p>Your chat history is stored on your own device unless you turn on cloud sync. Messages are sent to our servers and AI providers only to create replies. We do not sell your data.</p></details>
   <details><summary>Which languages does it support?</summary><p>Perses understands and replies in any language you write in. Voice input works in many languages, and you can pick yours in the + menu.</p></details>
